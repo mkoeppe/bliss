@@ -1,0 +1,3 @@
+libbliss.a usr/lib/
+*.h usr/include/bliss
+*.hh usr/include/bliss

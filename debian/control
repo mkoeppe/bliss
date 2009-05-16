@@ -2,12 +2,20 @@ Source: bliss
 Section: unknown
 Priority: extra
 Maintainer: David Bremner <bremner@unb.ca>
-Build-Depends: quilt, debhelper (>= 7)
+Build-Depends: quilt, debhelper (>= 7), libgmp3-dev, xsltproc, docbook-xsl, docbook-xml
 Standards-Version: 3.8.1
-Homepage: <insert the upstream URL, if relevant>
+Homepage: http://www.tcs.hut.fi/Software/bliss/index.shtml
 
 Package: bliss
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
+Description: tool for computing automorphism groups and canonical labelings of graphs
+ <insert long description, indented with spaces>
+
+
+
+Package: libbliss-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: tool for computing automorphism groups and canonical labelings of graphs
  <insert long description, indented with spaces>
