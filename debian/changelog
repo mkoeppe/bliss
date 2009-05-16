@@ -1,0 +1,5 @@
+bliss (0.50-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- David Bremner <bremner@unb.ca>  Sat, 16 May 2009 07:26:55 -0300
