@@ -1,0 +1,7 @@
+# Hey emacs: -*- readme-debian -*-   
+
+* Get better licensing statement from upstream
+* Add doxygen docs to dev file
+* Fix formatting of man page
+
+ -- David Bremner <bremner@unb.ca>, Sat, 16 May 2009 09:50:30 -0300
