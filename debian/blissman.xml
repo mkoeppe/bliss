@@ -11,7 +11,7 @@
 </refmeta>
 <refnamediv id='name'>
 <refname>bliss</refname>
-<refpurpose>manual page for bliss version 0.50</refpurpose>
+<refpurpose>Compute automorphism groups and canonical labelings of graphs</refpurpose>
 </refnamediv>
 <!-- body begins here -->
 <refsynopsisdiv id='synopsis'>
@@ -24,8 +24,7 @@
 
 
 <refsect1 id='description'><title>DESCRIPTION</title>
-<para>bliss version 0.50 (compiled May 16 2009)
-Copyright 2003-2007 Tommi Junttila</para>
+<para>Tool for computing automorphism groups and canonical labelings of graphs</para>
 <variablelist remap='TP'>
   <varlistentry>
   <term><option>-directed</option></term>
