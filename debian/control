@@ -3,7 +3,7 @@ Section: math
 Priority: optional
 Maintainer: David Bremner <bremner@unb.ca>
 Build-Depends: quilt, debhelper (>= 7.0.50~), libgmp3-dev, xsltproc, docbook-xsl, docbook-xml
-Standards-Version: 3.8.1
+Standards-Version: 3.9.1
 Homepage: http://www.tcs.hut.fi/Software/bliss/index.shtml
 
 Package: bliss
