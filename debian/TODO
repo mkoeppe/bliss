@@ -2,6 +2,5 @@
 
 * Get better licensing statement from upstream
 * Add doxygen docs to dev file
-* Fix formatting of man page
 
- -- David Bremner <bremner@unb.ca>, Sat, 16 May 2009 09:50:30 -0300
+ -- David Bremner <bremner@debian.org>, Thu, 16 Dec 2010 23:26:19 -0400
