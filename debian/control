@@ -1,7 +1,7 @@
 Source: bliss
 Section: math
 Priority: optional
-Maintainer: David Bremner <bremner@unb.ca>
+Maintainer: David Bremner <bremner@debian.org>
 Build-Depends: quilt, debhelper (>= 7.0.50~), libgmp3-dev, xsltproc, docbook-xsl, docbook-xml
 Standards-Version: 3.9.1
 Homepage: http://www.tcs.hut.fi/Software/bliss/index.shtml
