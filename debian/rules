@@ -11,6 +11,7 @@ XP=xsltproc -''-nonet
 
 override_dh_auto_build:
 	$(MAKE) gmp
+	doxygen
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
 
 
