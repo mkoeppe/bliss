@@ -31,7 +31,7 @@ Description: tool for computing automorphisms and labelings of graphs (libraries
  
 Package: libbliss-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libbliss0d (=${binary:Version})
+Depends: ${misc:Depends}, libbliss0d (=${binary:Version})
 Suggests: bliss
 Section: libdevel
 Description: tool for computing automorphisms and labelings of graphs (development)
