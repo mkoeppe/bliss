@@ -1,3 +1,5 @@
+Note that the binary and libraries are built with GMP.
+
 For documentation of the file format, see the bliss homepage
 
     http://www.tcs.hut.fi/Software/bliss/fileformat.shtml
@@ -5,4 +7,4 @@ For documentation of the file format, see the bliss homepage
 Hopefully a future release will include more documentation 
 in the package.
 
- -- David Bremner <bremner@debian.org>, Sat, 25 Dec 2010 11:08:41 -0400
+ -- David Bremner <bremner@debian.org>, Sat, 25 Dec 2010 13:33:23 -0400
