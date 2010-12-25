@@ -1,3 +1,4 @@
-libbliss.a usr/lib/
-*.h usr/include/bliss
-*.hh usr/include/bliss
+usr/lib/libbliss.a 
+usr/lib/libbliss.so
+usr/include/bliss
+

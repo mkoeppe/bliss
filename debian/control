@@ -11,19 +11,30 @@ Package: bliss
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libbliss-dev
-Description: tool for computing automorphism groups and canonical labelings of graphs
+Description: tool for computing automorphisms and labelings (command line tool)
  Bliss is a backtracking algorithm based on individualization and
  reﬁnement for labeling a graph.  Data structures, subroutines, and
  pruning heuristics especially for fast handling of large and sparse
  graphs are provided. This package provides the command line tool 
  bliss; a C++ and C API is also available.
 
+Package: libbliss0d
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: libbliss-dev
+Description: tool for computing automorphisms and labelings of graphs (libraries)
+ Bliss is a backtracking algorithm based on individualization and
+ reﬁnement for labeling a graph.  Data structures, subroutines, and
+ pruning heuristics especially for fast handling of large and sparse
+ graphs are provided. This package provides the shared library; a C++
+ and C API is also available.
+ 
 Package: libbliss-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: bliss
 Section: libdevel
-Description: tool for computing automorphism groups and canonical labelings of graphs
+Description: tool for computing automorphisms and labelings of graphs (development)
  Bliss is a backtracking algorithm based on individualization and
  reﬁnement for labeling a graph.  Data structures, subroutines, and
  pruning heuristics especially for fast handling of large and sparse

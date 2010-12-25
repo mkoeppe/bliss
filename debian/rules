@@ -9,9 +9,13 @@ XP=xsltproc -''-nonet
 %: 
 	dh $@
 
-override_dh_auto_build:
-	$(MAKE) gmp
+override_dh_auto_build: 
+	$(MAKE) -f debian/Makefile.shlib  libbliss.so bliss_shlib
 	doxygen
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
 
+override_dh_auto_clean:
+	$(MAKE) -f debian/Makefile.shlib clean_shlib
 
+override_dh_auto_install:
+	$(MAKE) -f debian/Makefile.shlib DESTDIR=$(CURDIR)/debian/tmp install_shlib
