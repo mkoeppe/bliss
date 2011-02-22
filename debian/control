@@ -22,6 +22,7 @@ Package: libbliss0d
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libbliss-dev
+Section: libs
 Description: library to compute graph automorphisms and labelings
  Bliss is a backtracking algorithm based on individualization and
  refinement for labeling a graph.  Data structures, subroutines, and
