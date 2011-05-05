@@ -6,8 +6,27 @@ extern "C" {
 #include "bliss_C.h"
 }
 
+/*
+  Copyright (c) 2006-2011 Tommi Junttila
+  Released under the GNU General Public License version 3.
+  
+  This file is part of bliss.
+  
+  bliss is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3
+  as published by the Free Software Foundation.
+  
+  bliss is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 struct bliss_graph_struct {
-  bliss::Graph *g;
+  bliss::Graph* g;
 };
 
 extern "C"
@@ -88,7 +107,7 @@ int bliss_cmp(BlissGraph *graph1, BlissGraph *graph2)
   assert(graph1->g);
   assert(graph2);
   assert(graph2->g);
-  return graph1->g->cmp(graph2->g);
+  return (*graph1->g).cmp(*graph2->g);
 }
 
 extern "C"
@@ -127,13 +146,13 @@ bliss_find_automorphisms(BlissGraph *graph,
 
   if(stats)
     {
-      stats->group_size_approx = s.group_size_approx;
-      stats->nof_nodes = s.nof_nodes;
-      stats->nof_leaf_nodes = s.nof_leaf_nodes;
-      stats->nof_bad_nodes = s.nof_bad_nodes;
-      stats->nof_canupdates = s.nof_canupdates;
-      stats->nof_generators = s.nof_generators;
-      stats->max_level = s.max_level;
+      stats->group_size_approx = s.get_group_size_approx();
+      stats->nof_nodes = s.get_nof_nodes();
+      stats->nof_leaf_nodes = s.get_nof_leaf_nodes();
+      stats->nof_bad_nodes = s.get_nof_bad_nodes();
+      stats->nof_canupdates = s.get_nof_canupdates();
+      stats->nof_generators = s.get_nof_generators();
+      stats->max_level = s.get_max_level();
     }
 }
 
@@ -156,13 +175,13 @@ bliss_find_canonical_labeling(BlissGraph *graph,
 
   if(stats)
     {
-      stats->group_size_approx = s.group_size_approx;
-      stats->nof_nodes = s.nof_nodes;
-      stats->nof_leaf_nodes = s.nof_leaf_nodes;
-      stats->nof_bad_nodes = s.nof_bad_nodes;
-      stats->nof_canupdates = s.nof_canupdates;
-      stats->nof_generators = s.nof_generators;
-      stats->max_level = s.max_level;
+      stats->group_size_approx = s.get_group_size_approx();
+      stats->nof_nodes = s.get_nof_nodes();
+      stats->nof_leaf_nodes = s.get_nof_leaf_nodes();
+      stats->nof_bad_nodes = s.get_nof_bad_nodes();
+      stats->nof_canupdates = s.get_nof_canupdates();
+      stats->nof_generators = s.get_nof_generators();
+      stats->max_level = s.get_max_level();
     }
 
   return canonical_labeling;

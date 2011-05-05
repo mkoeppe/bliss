@@ -4,6 +4,26 @@
 #include "defs.hh"
 #include "heap.hh"
 
+/*
+  Copyright (c) 2006-2011 Tommi Junttila
+  Released under the GNU General Public License version 3.
+  
+  This file is part of bliss.
+  
+  bliss is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3
+  as published by the Free Software Foundation.
+  
+  bliss is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
 namespace bliss {
 
 Heap::~Heap()
@@ -19,8 +39,6 @@ Heap::~Heap()
 
 void Heap::upheap(unsigned int index)
 {
-  BLISS_ASSERT(n >= 1);
-  BLISS_ASSERT(index >= 1 and index <= n);
   const unsigned int v = array[index];
   array[0] = 0;
   while(array[index/2] > v)
@@ -34,7 +52,8 @@ void Heap::upheap(unsigned int index)
 void Heap::downheap(unsigned int index)
 {
   const unsigned int v = array[index];
-  while(index <= n/2)
+  const unsigned int lim = n/2;
+  while(index <= lim)
     {
       unsigned int new_index = index + index;
       if((new_index < n) and (array[new_index] > array[new_index+1]))
@@ -49,7 +68,6 @@ void Heap::downheap(unsigned int index)
 
 void Heap::init(const unsigned int size)
 {
-  BLISS_ASSERT(size > 0);
   if(size > N)
     {
       if(array)
@@ -62,14 +80,12 @@ void Heap::init(const unsigned int size)
 
 void Heap::insert(const unsigned int v)
 {
-  BLISS_ASSERT(n < N);
   array[++n] = v;
   upheap(n);
 }
 
 unsigned int Heap::remove()
 {
-  BLISS_ASSERT(n >= 1 && n <= N);
   const unsigned int v = array[1];
   array[1] = array[n--];
   downheap(1);
