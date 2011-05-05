@@ -5,8 +5,9 @@ CFLAGS += -Wall
 CFLAGS += --pedantic
 CFLAGS += -O9
 #CFLAGS += -DBLISS_DEBUG
+CFLAGS += -fPIC
 
-SRCS = graph.cc partition.cc orbit.cc uintseqhash.cc heap.cc
+SRCS = defs.cc graph.cc partition.cc orbit.cc uintseqhash.cc heap.cc
 SRCS += timer.cc utils.cc bliss_C.cc
 
 OBJS = $(addsuffix .o, $(basename $(SRCS)))
@@ -26,6 +27,7 @@ gmp:	CFLAGS += -DBLISS_USE_GMP
 
 normal:	bliss
 gmp:	bliss_gmp
+
 
 all:: lib bliss
 
@@ -47,6 +49,7 @@ bliss: bliss.o lib $(OBJS)
 
 bliss_gmp: bliss.og lib_gmp $(GMPOBJS)
 	$(CC) $(CFLAGS) -o bliss bliss.og $(GMPOBJS) $(LIB)
+
 
 clean:
 	rm -f bliss $(BLISSLIB) $(OBJS) bliss.o $(GMPOBJS) bliss.og

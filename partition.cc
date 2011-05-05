@@ -5,14 +5,26 @@
 #include "partition.hh"
 
 /*
- * Copyright (c) Tommi Junttila
- * Released under the GNU General Public License version 2.
- */
+  Copyright (c) 2006-2011 Tommi Junttila
+  Released under the GNU General Public License version 3.
+  
+  This file is part of bliss.
+  
+  bliss is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3
+  as published by the Free Software Foundation.
+  
+  bliss is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 
 namespace bliss {
-
-static const bool should_not_happen = false;
 
 
 
@@ -26,25 +38,25 @@ Partition::Partition()
   free_cells = 0;
   element_to_cell_map = 0;
   graph = 0;
+  discrete_cell_count = 0;
   /* Initialize a distribution count sorting array. */
   for(unsigned int i = 0; i < 256; i++)
     dcs_count[i] = 0;
+
+  cr_enabled = false;
+  cr_cells = 0;
+  cr_levels = 0;
 }
 
 
 
 Partition::~Partition()
 {
-  if(elements) {
-    free(elements); elements = 0; }
-  if(cells) {
-    free(cells); cells = 0; }
-  if(element_to_cell_map) {
-    free(element_to_cell_map); element_to_cell_map = 0; }
-  if(in_pos) {
-    free(in_pos); in_pos = 0; }
-  if(invariant_values) {
-    free(invariant_values); invariant_values = 0; }
+  if(elements)            {free(elements); elements = 0; }
+  if(cells)               {free(cells); cells = 0; }
+  if(element_to_cell_map) {free(element_to_cell_map); element_to_cell_map = 0; }
+  if(in_pos)              {free(in_pos); in_pos = 0; }
+  if(invariant_values)    {free(invariant_values); invariant_values = 0; }
   N = 0;
 }
 
@@ -83,16 +95,22 @@ void Partition::init(const unsigned int M)
   cells[0].max_ival_count = 0;
   cells[0].in_splitting_queue = false;
   cells[0].in_neighbour_heap = false;
+  cells[0].prev = 0;
   cells[0].next = 0;
-  cells[0].prev_next_ptr = &first_cell;
   cells[0].next_nonsingleton = 0;
   cells[0].prev_nonsingleton = 0;
   cells[0].split_level = 0;
   first_cell = &cells[0];
   if(N == 1)
-    first_nonsingleton_cell = 0;
+    {
+      first_nonsingleton_cell = 0;
+      discrete_cell_count = 1;
+    }
   else
-    first_nonsingleton_cell = &cells[0];
+    {
+      first_nonsingleton_cell = &cells[0];
+      discrete_cell_count = 0;
+    }
 
   for(unsigned int i = 1; i < N; i++)
     {
@@ -102,8 +120,8 @@ void Partition::init(const unsigned int M)
       cells[i].max_ival_count = 0;
       cells[i].in_splitting_queue = false;
       cells[i].in_neighbour_heap = false;
+      cells[i].prev = 0;
       cells[i].next = (i < N-1)?&cells[i+1]:0;
-      cells[i].prev_next_ptr = (i == 1)?&free_cells:&(cells[i-1].next);
       cells[i].next_nonsingleton = 0;
       cells[i].prev_nonsingleton = 0;
     }
@@ -120,83 +138,13 @@ void Partition::init(const unsigned int M)
 
   splitting_queue.init(N);
   refinement_stack.init(N);
-  level = 0;
 
   /* Reset the main backtracking stack */
   bt_stack.clear();
 }
 
-/*
- * For debugging purposes only.
- */
-void Partition::consistency_check()
-{
-#if defined(BLISS_CONSISTENCY_CHECKS)
-  for(unsigned int i = 0; i < N; i++)
-    {
-      assert(*in_pos[i] == i);
-      assert(in_pos[elements[i]] == elements + i);
-      assert((unsigned int)(in_pos[i] - elements) >=
-	     element_to_cell_map[i]->first);
-      assert((unsigned int)(in_pos[i] - elements) <
-	     element_to_cell_map[i]->first + element_to_cell_map[i]->length);
-    }
-  for(const Cell *cell = first_cell; cell; cell = cell->next)
-    {
-      assert(cell->prev_next_ptr && *(cell->prev_next_ptr) == cell);
-    }
-  const bool do_print = false;
-  if(do_print)
-    {
-      fprintf(stderr, "\nRef stack: ");
-      for(unsigned int j = 0; j < refinement_stack.size(); j++)
-	{
-	  const RefInfo i = refinement_stack.element_at(j);
-	  fprintf(stderr, "f%u,%d,%d ",
-	      i.split_cell_first,
-		  i.prev_nonsingleton_first,
-		  i.next_nonsingleton_first);
-	}
-      fprintf(stderr, "\n");
-      for(const Cell *cell = first_nonsingleton_cell; cell;
-	  cell = cell->next_nonsingleton)
-	{
-	  fprintf(stderr, "%u:%u->", cell->first, cell->length);
-	  if(cell->next_nonsingleton)
-	    assert(cell->first < cell->next_nonsingleton->first);
-	}
-      fprintf(stderr, "\n");
-    }
-  const Cell *next_nonsingleton = first_nonsingleton_cell;
-  const Cell *prev_nonsingleton = 0;
-  if(next_nonsingleton)
-    assert(next_nonsingleton->prev_nonsingleton == 0);
-  for(const Cell *cell = first_cell; cell; cell = cell->next)
-    {
-      assert(!cell->next || cell->next->prev_next_ptr == &(cell->next));
-      if(cell->length > 1)
-	{
-	  if(do_print)
-	    fprintf(stderr, "%u:%u=>", cell->first, cell->length);
-	  assert(cell == next_nonsingleton); 
-	  assert(cell->prev_nonsingleton == prev_nonsingleton);
-	  next_nonsingleton = cell->next_nonsingleton;
-	  prev_nonsingleton = cell;
-	  if(next_nonsingleton)
-	    assert(next_nonsingleton->first > cell->first);
-	}
-      else
-	{
-	  assert(cell != next_nonsingleton);
-	  assert(cell->next_nonsingleton == 0);
-	  assert(cell->prev_nonsingleton == 0);
-	}
-    }
-  assert(next_nonsingleton == 0);
-  if(do_print)
-    fprintf(stderr, "\n");
-#endif
-}
+
+
 
 
 
@@ -205,6 +153,8 @@ Partition::set_backtrack_point()
 {
   BacktrackInfo info;
   info.refinement_stack_size = refinement_stack.size();
+  if(cr_enabled)
+    info.cr_backtrack_point = cr_get_backtrack_point();
   BacktrackPoint p = bt_stack.size();
   bt_stack.push_back(info);
   return p;
@@ -215,67 +165,65 @@ Partition::set_backtrack_point()
 void
 Partition::goto_backtrack_point(BacktrackPoint p)
 {
-  BLISS_ASSERT(p < bt_stack.size());
   BacktrackInfo info = bt_stack[p];
   bt_stack.resize(p);
 
-  const unsigned int dest_refinement_stack_size = info.refinement_stack_size;
+  if(cr_enabled)
+    cr_goto_backtrack_point(info.cr_backtrack_point);
 
+  const unsigned int dest_refinement_stack_size = info.refinement_stack_size;
+  
   assert(refinement_stack.size() >= dest_refinement_stack_size);
   while(refinement_stack.size() > dest_refinement_stack_size)
     {
       RefInfo i = refinement_stack.pop();
       const unsigned int first = i.split_cell_first;
-      Cell *cell = element_to_cell_map[elements[first]];
-
+      Cell* cell = get_cell(elements[first]);
+      
       if(cell->first != first)
 	{
+	  assert(cell->first < first);
 	  assert(cell->split_level <= dest_refinement_stack_size);
 	  goto done;
 	}
-      if(cell->split_level <= dest_refinement_stack_size)
+      assert(cell->split_level > dest_refinement_stack_size);
+
+      while(cell->split_level > dest_refinement_stack_size)
 	{
-	  goto done;
+	  assert(cell->prev);
+	  cell = cell->prev;
 	}
-
-      {
-	const unsigned int new_first = cell->first;
-	do
-	  {
-	    Cell * const next_cell = cell->next;
-	    assert(next_cell);
-	    /* (Pseudo)free cell */
-	    cell->first = 0;
-	    cell->length = 0;
-	    cell->next->prev_next_ptr = cell->prev_next_ptr;
-	    *(cell->prev_next_ptr) = cell->next;
-	    cell->next = free_cells;
-	    if(cell->next)
-	      cell->next->prev_next_ptr = &(cell->next);
-	    cell->prev_next_ptr = &free_cells;
-	    free_cells = cell;
-	    
-	    cell = next_cell;
-	  }
-	while(cell->split_level > dest_refinement_stack_size);
-
-	/* Update element_to_cell_map values of elements added in cell */
-	unsigned int *ep = elements + new_first;
-	unsigned int * const lp = elements + cell->first;
-	while(ep < lp) {
-	  element_to_cell_map[*ep] = cell;
-	  ep++;
+      while(cell->next and
+	    cell->next->split_level > dest_refinement_stack_size)
+	{
+	  /* Merge next cell */
+	  Cell* const next_cell = cell->next;
+	  if(cell->length == 1)
+	    discrete_cell_count--;
+	  if(next_cell->length == 1)
+	    discrete_cell_count--;
+	  /* Update element_to_cell_map values of elements added in cell */
+	  unsigned int* ep = elements + next_cell->first;
+	  unsigned int* const lp = ep + next_cell->length;
+	  for( ; ep < lp; ep++)
+	    element_to_cell_map[*ep] = cell;
+	  /* Update cell parameters */
+	  cell->length += next_cell->length;
+	  if(next_cell->next)
+	    next_cell->next->prev = cell;
+	  cell->next = next_cell->next;
+	  /* (Pseudo)free next_cell */
+	  next_cell->first = 0;
+	  next_cell->length = 0;
+	  next_cell->prev = 0;
+	  next_cell->next = free_cells;
+	  free_cells = next_cell;
 	}
-	/* Update cell parameters */
-	cell->length = (cell->first + cell->length) - new_first;
-	cell->first = new_first;
-      }
 
     done:
       if(i.prev_nonsingleton_first >= 0)
 	{
-	  Cell * const prev_cell = element_to_cell_map[elements[i.prev_nonsingleton_first]];
-	  BLISS_ASSERT(prev_cell->length > 1);
+	  Cell* const prev_cell = get_cell(elements[i.prev_nonsingleton_first]);
 	  cell->prev_nonsingleton = prev_cell;
 	  prev_cell->next_nonsingleton = cell;
 	}
@@ -288,8 +236,7 @@ Partition::goto_backtrack_point(BacktrackPoint p)
 
       if(i.next_nonsingleton_first >= 0)
 	{
-	  Cell * const next_cell = element_to_cell_map[elements[i.next_nonsingleton_first]];
-	  BLISS_ASSERT(next_cell->length > 1);
+	  Cell* const next_cell = get_cell(elements[i.next_nonsingleton_first]);
 	  cell->next_nonsingleton = next_cell;
 	  next_cell->prev_nonsingleton = cell;
 	}
@@ -300,21 +247,16 @@ Partition::goto_backtrack_point(BacktrackPoint p)
 	}
     }
 
-  consistency_check();
 }
 
 
 
-Partition::Cell *
+Partition::Cell*
 Partition::individualize(Partition::Cell * const cell,
 			 const unsigned int element)
 {
-  BLISS_ASSERT(!cell->is_unit());
 
   unsigned int * const pos = in_pos[element];
-  BLISS_ASSERT((unsigned int)(pos - elements) >= cell->first);
-  BLISS_ASSERT((unsigned int)(pos - elements) < cell->first + cell->length);
-  BLISS_ASSERT(*pos == element);
 
   const unsigned int last = cell->first + cell->length - 1;
   *pos = elements[last];
@@ -323,43 +265,41 @@ Partition::individualize(Partition::Cell * const cell,
   in_pos[element] = elements + last;
   
   Partition::Cell * const new_cell = aux_split_in_two(cell, cell->length-1);
-  BLISS_ASSERT(elements[new_cell->first] == element);
   element_to_cell_map[element] = new_cell;
 
-  consistency_check();
 
   return new_cell;
 } 
 
 
 
-Partition::Cell *
-Partition::aux_split_in_two(Partition::Cell * const cell,
+Partition::Cell*
+Partition::aux_split_in_two(Partition::Cell* const cell,
 			    const unsigned int first_half_size)
 {
   RefInfo i;
 
-  BLISS_ASSERT(0 < first_half_size && first_half_size < cell->length);
 
   /* (Pseudo)allocate new cell */
   Cell * const new_cell = free_cells;
-  BLISS_ASSERT(new_cell != 0);
   free_cells = new_cell->next;
   /* Update new cell parameters */
   new_cell->first = cell->first + first_half_size;
   new_cell->length = cell->length - first_half_size;
   new_cell->next = cell->next;
   if(new_cell->next)
-    new_cell->next->prev_next_ptr = &(new_cell->next);
-  new_cell->prev_next_ptr = &(cell->next);
-  new_cell->split_level = cell->split_level;
+    new_cell->next->prev = new_cell;
+  new_cell->prev = cell;
+  new_cell->split_level = refinement_stack.size()+1;
   /* Update old, splitted cell parameters */
   cell->length = first_half_size;
   cell->next = new_cell;
-  cell->split_level = refinement_stack.size()+1;
-  
+  /* CR */
+  if(cr_enabled)
+    cr_create_at_level_trailed(new_cell->first, cr_get_level(cell->first));
+
   /* Add cell in refinement_stack for backtracking */
-  i.split_cell_first = cell->first;
+  i.split_cell_first = new_cell->first;
   if(cell->prev_nonsingleton)
     i.prev_nonsingleton_first = cell->prev_nonsingleton->first;
   else
@@ -383,6 +323,7 @@ Partition::aux_split_in_two(Partition::Cell * const cell,
     {
       new_cell->next_nonsingleton = 0;
       new_cell->prev_nonsingleton = 0;
+      discrete_cell_count++;
     }
 
   if(cell->is_unit())
@@ -395,6 +336,7 @@ Partition::aux_split_in_two(Partition::Cell * const cell,
 	cell->next_nonsingleton->prev_nonsingleton = cell->prev_nonsingleton;
       cell->next_nonsingleton = 0;
       cell->prev_nonsingleton = 0;
+      discrete_cell_count++;
     }
 
   return new_cell;
@@ -402,47 +344,56 @@ Partition::aux_split_in_two(Partition::Cell * const cell,
 
 
 
-void Partition::print(FILE * const fp)
+size_t
+Partition::print(FILE* const fp, const bool add_newline) const
 {
-  const char *cell_sep = "";
-  fprintf(fp, "[");
-  for(Cell *cell = first_cell; cell; cell = cell->next)
+  size_t r = 0;
+  const char* cell_sep = "";
+  r += fprintf(fp, "[");
+  for(Cell* cell = first_cell; cell; cell = cell->next)
     {
-      fprintf(fp, "%s", cell_sep);
-      cell_sep = ",";
       /* Print cell */
-      const char *elem_sep = "";
-      fprintf(fp, "{");
+      r += fprintf(fp, "%s{", cell_sep);
+      cell_sep = ",";
+      const char* elem_sep = "";
       for(unsigned int i = 0; i < cell->length; i++)
 	{
-	  fprintf(fp, "%s%u", elem_sep, elements[cell->first + i]);
+	  r += fprintf(fp, "%s%u", elem_sep, elements[cell->first + i]);
 	  elem_sep = ",";
 	}
-      fprintf(fp, "}");
+      r += fprintf(fp, "}");
     }
-  fprintf(fp, "]");
+  r += fprintf(fp, "]");
+  if(add_newline) r += fprintf(fp, "\n");
+  return r;
 }
 
 
 
-void Partition::print_signature(FILE * const fp)
+size_t
+Partition::print_signature(FILE* const fp, const bool add_newline) const
 {
-  const char *cell_sep = "";
-  fprintf(fp, "[");
-  for(Cell *cell = first_cell; cell; cell = cell->next)
+  size_t r = 0;
+  const char* cell_sep = "";
+  r += fprintf(fp, "[");
+  for(Cell* cell = first_cell; cell; cell = cell->next)
     {
-      fprintf(fp, "%s%u", cell_sep, cell->length);
+      if(cell->is_unit()) continue;
+      //fprintf(fp, "%s%u", cell_sep, cr_cells[cell->first].level);
+      r += fprintf(fp, "%s%u", cell_sep, cell->length);
       cell_sep = ",";
     }
-  fprintf(fp, "]");
+  r += fprintf(fp, "]");
+  if(add_newline) r += fprintf(fp, "\n");
+  return r;
 }
 
 
 
-void Partition::add_in_splitting_queue(Cell * const cell)
+void
+Partition::splitting_queue_add(Cell* const cell)
 {
   static const unsigned int smallish_cell_threshold = 1;
-  assert(!cell->in_splitting_queue);
   cell->in_splitting_queue = true;
   if(cell->length <= smallish_cell_threshold)
     splitting_queue.push_front(cell);
@@ -452,15 +403,14 @@ void Partition::add_in_splitting_queue(Cell * const cell)
 
 
 
-void Partition::clear_splitting_queue()
+void
+Partition::splitting_queue_clear()
 {
-  while(!splitting_queue.is_empty())
-    {
-      Cell * const cell = splitting_queue.pop_front();
-      assert(cell->in_splitting_queue);
-      cell->in_splitting_queue = false;
-    }
+  while(!splitting_queue_is_empty())
+    splitting_queue_pop();
 }
+
+
 
 
 
@@ -468,36 +418,32 @@ void Partition::clear_splitting_queue()
  * Assumes that the invariant values are NOT the same
  * and that the cell contains more than one element
  */
-Partition::Cell *
-Partition::sort_and_split_cell1(Partition::Cell *cell)
+Partition::Cell*
+Partition::sort_and_split_cell1(Partition::Cell* const cell)
 {
 #if defined(BLISS_EXPENSIVE_CONSISTENCY_CHECKS)
   assert(cell->length > 1);
   assert(cell->first + cell->length <= N);
   unsigned int nof_0_found = 0;
   unsigned int nof_1_found = 0;
-  for(unsigned int i = 0; i < cell->length; i++)
+  for(unsigned int i = cell->first; i < cell->first + cell->length; i++)
     {
-      if(invariant_values[elements[cell->first + i]] == 0)
-	nof_0_found++;
-      else if(invariant_values[elements[cell->first + i]] == 1)
-	nof_1_found++;
-      else
-	assert(should_not_happen);
+      const unsigned int ival = invariant_values[elements[i]];
+      assert(ival == 0 or ival == 1);
+      if(ival == 0) nof_0_found++;
+      else nof_1_found++;
     }
-  assert(nof_0_found);
-  assert(nof_1_found);
+  assert(nof_0_found > 0);
+  assert(nof_1_found > 0);
   assert(nof_1_found == cell->max_ival_count);
+  assert(nof_0_found + nof_1_found == cell->length);
   assert(cell->max_ival == 1);
 #endif
 
-  consistency_check();
 
   /* Allocate new cell */
-  Cell *new_cell = free_cells;
-  BLISS_ASSERT(new_cell != 0);
+  Cell* const new_cell = free_cells;
   free_cells = new_cell->next;
-  if(free_cells) free_cells->prev_next_ptr = &(free_cells);
 
 #define NEW_SORT1
 #ifdef NEW_SORT1
@@ -553,13 +499,15 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
   new_cell->length = cell->length - (new_cell->first - cell->first);
   new_cell->next = cell->next;
   if(new_cell->next)
-    new_cell->next->prev_next_ptr = &(new_cell->next);
-  new_cell->prev_next_ptr = &(cell->next);
-  new_cell->split_level = cell->split_level;
+    new_cell->next->prev = new_cell;
+  new_cell->prev = cell;
+  new_cell->split_level = refinement_stack.size()+1;
   /* Update old, splitted cell parameters */
   cell->length = new_cell->first - cell->first;
   cell->next = new_cell;
-  cell->split_level = refinement_stack.size()+1;
+  /* CR */
+  if(cr_enabled)
+    cr_create_at_level_trailed(new_cell->first, cr_get_level(cell->first));
 
 #else
   /* Sort vertices in the cell according to the invariant values */
@@ -570,9 +518,6 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
       const unsigned int element = *ep0;
       const unsigned int ival = invariant_values[element];
       invariant_values[element] = 0;
-      BLISS_ASSERT(ival <= 1);
-      BLISS_ASSERT(element_to_cell_map[element] == cell);
-      BLISS_ASSERT(in_pos[element] == ep0);
       if(ival == 0)
 	{
 	  ep0++;
@@ -588,28 +533,29 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
 	}
     }
 
-  BLISS_ASSERT(ep1 != elements + cell->first);
-  BLISS_ASSERT(ep0 != elements + cell->first + cell->length);
 
   /* Update new cell parameters */
   new_cell->first = ep1 - elements;
   new_cell->length = cell->length - (new_cell->first - cell->first);
   new_cell->next = cell->next;
   if(new_cell->next)
-    new_cell->next->prev_next_ptr = &(new_cell->next);
-  new_cell->prev_next_ptr = &(cell->next);
+    new_cell->next->prev = new_cell;
+  new_cell->prev = cell;
   new_cell->split_level = cell->split_level;
   /* Update old, splitted cell parameters */
   cell->length = new_cell->first - cell->first;
   cell->next = new_cell;
   cell->split_level = refinement_stack.size()+1;
+  /* CR */
+  if(cr_enabled)
+    cr_create_at_level_trailed(new_cell->first, cr_get_level(cell->first));
 
 #endif /* ifdef NEW_SORT1*/
 
   /* Add cell in refinement stack for backtracking */
   {
     RefInfo i;
-    i.split_cell_first = cell->first;
+    i.split_cell_first = new_cell->first;
     if(cell->prev_nonsingleton)
       i.prev_nonsingleton_first = cell->prev_nonsingleton->first;
     else
@@ -631,6 +577,7 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
       {
 	new_cell->next_nonsingleton = 0;
 	new_cell->prev_nonsingleton = 0;
+	discrete_cell_count++;
       }
     if(cell->is_unit())
       {
@@ -642,17 +589,17 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
 	  cell->next_nonsingleton->prev_nonsingleton = cell->prev_nonsingleton;
 	cell->next_nonsingleton = 0;
 	cell->prev_nonsingleton = 0;
+	discrete_cell_count++;
       }
     refinement_stack.push(i);
   }
 
 
   /* Add cells in splitting queue */
-  BLISS_ASSERT(!new_cell->in_splitting_queue);
   if(cell->in_splitting_queue) {
     /* Both cells must be included in splitting_queue in order to have
        refinement to equitable partition */
-    add_in_splitting_queue(new_cell);
+    splitting_queue_add(new_cell);
   } else {
     Cell *min_cell, *max_cell;
     if(cell->length <= new_cell->length) {
@@ -663,14 +610,13 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
       max_cell = cell;
     }
     /* Put the smaller cell in splitting_queue */
-    add_in_splitting_queue(min_cell);
+    splitting_queue_add(min_cell);
     if(max_cell->is_unit()) {
       /* Put the "larger" cell also in splitting_queue */
-      add_in_splitting_queue(max_cell);
+      splitting_queue_add(max_cell);
     }
   }
 
-  consistency_check();
 
   return new_cell;
 }
@@ -684,11 +630,11 @@ Partition::sort_and_split_cell1(Partition::Cell *cell)
  * Build start array so that
  * dcs_start[0] = 0 and dcs_start[i+1] = dcs_start[i] + dcs_count[i].
  */
-void Partition::dcs_cumulate_count(const unsigned int max) 
+void
+Partition::dcs_cumulate_count(const unsigned int max) 
 {
-  BLISS_ASSERT(max <= 255);
-  unsigned int *count_p = dcs_count;
-  unsigned int *start_p = dcs_start;
+  unsigned int* count_p = dcs_count;
+  unsigned int* start_p = dcs_start;
   unsigned int sum = 0;
   for(unsigned int i = max+1; i > 0; i--)
     {
@@ -703,11 +649,10 @@ void Partition::dcs_cumulate_count(const unsigned int max)
 /**
  * Distribution count sorting of cells with invariant values less than 256.
  */
-Partition::Cell *
-Partition::sort_and_split_cell255(Partition::Cell * const cell,
+Partition::Cell*
+Partition::sort_and_split_cell255(Partition::Cell* const cell,
 				  const unsigned int max_ival)
 {
-  BLISS_ASSERT(max_ival <= 255);
 
   if(cell->is_unit())
     {
@@ -726,9 +671,7 @@ Partition::sort_and_split_cell255(Partition::Cell * const cell,
    */
   {
     const unsigned int *ep = elements + cell->first;
-    BLISS_ASSERT(element_to_cell_map[*ep] == cell);
     const unsigned int ival = invariant_values[*ep];
-    BLISS_ASSERT(ival <= 255);
     dcs_count[ival]++;
     ep++;
 #if defined(BLISS_CONSISTENCY_CHECKS)
@@ -736,10 +679,7 @@ Partition::sort_and_split_cell255(Partition::Cell * const cell,
 #endif
     for(unsigned int i = cell->length - 1; i != 0; i--)
       {
-	BLISS_ASSERT(element_to_cell_map[*ep] == cell);
 	const unsigned int ival2 = invariant_values[*ep];
-	BLISS_ASSERT(ival2 <= 255);
-	BLISS_ASSERT(ival2 <= max_ival);
 	dcs_count[ival2]++;
 #if defined(BLISS_CONSISTENCY_CHECKS)
 	if(ival2 != ival) {
@@ -762,8 +702,6 @@ Partition::sort_and_split_cell255(Partition::Cell * const cell,
   /* Build start array */
   dcs_cumulate_count(max_ival);
 
-  //BLISS_ASSERT(dcs_start[255] + dcs_count[255] == cell->length);
-  BLISS_ASSERT(dcs_start[max_ival] + dcs_count[max_ival] == cell->length);
 
   /* Do the sorting */
   for(unsigned int i = 0; i <= max_ival; i++)
@@ -777,8 +715,6 @@ Partition::sort_and_split_cell255(Partition::Cell * const cell,
 	      const unsigned int ival = invariant_values[element];
 	      if(ival == i)
 		break;
-	      BLISS_ASSERT(ival > i);
-	      BLISS_ASSERT(dcs_count[ival] > 0);
 	      *ep = elements[cell->first + dcs_start[ival]];
 	      elements[cell->first + dcs_start[ival]] = element;
 	      dcs_start[ival]++;
@@ -795,10 +731,10 @@ Partition::sort_and_split_cell255(Partition::Cell * const cell,
 #endif
 
   /* split cell */
-  Cell * const cell2 = split_cell(cell);
-  BLISS_ASSERT(cell2 != cell);
-  return cell2;
+  Cell* const new_cell = split_cell(cell);
+  return new_cell;
 }
+
 
 
 /*
@@ -806,12 +742,12 @@ Partition::sort_and_split_cell255(Partition::Cell * const cell,
  * The invariant values are not cleared.
  * Warning: the in_pos array is left in incorrect state.
  */
-bool Partition::shellsort_cell(Partition::Cell *cell)
+bool
+Partition::shellsort_cell(Partition::Cell* const cell)
 {
   unsigned int h;
-  unsigned int *ep;
+  unsigned int* ep;
 
-  //BLISS_ASSERT(cell->first + cell->length <= N);
 
   if(cell->is_unit())
     return false;
@@ -821,11 +757,9 @@ bool Partition::shellsort_cell(Partition::Cell *cell)
   {
     ep = elements + cell->first;
     const unsigned int ival = invariant_values[*ep];
-    BLISS_ASSERT(element_to_cell_map[*ep] == cell);
     ep++;
     for(unsigned int i = cell->length - 1; i > 0; i--)
       {
-	BLISS_ASSERT(element_to_cell_map[*ep] == cell);
 	if(invariant_values[*ep] != ival) {
 	  equal_invariant_values = false;
 	  break;
@@ -845,7 +779,7 @@ bool Partition::shellsort_cell(Partition::Cell *cell)
       const unsigned int element = ep[i];
       const unsigned int ival = invariant_values[element];
       unsigned int j = i;
-      while(j >= h && invariant_values[ep[j-h]] > ival) {
+      while(j >= h and invariant_values[ep[j-h]] > ival) {
         ep[j] = ep[j-h];
         j -= h;
       }
@@ -856,9 +790,11 @@ bool Partition::shellsort_cell(Partition::Cell *cell)
 }
 
 
-void Partition::clear_ivs(Cell * const cell)
+
+void
+Partition::clear_ivs(Cell* const cell)
 {
-  unsigned int *ep = elements + cell->first;
+  unsigned int* ep = elements + cell->first;
   for(unsigned int i = cell->length; i > 0; i--, ep++)
     invariant_values[*ep] = 0;
 }
@@ -868,18 +804,18 @@ void Partition::clear_ivs(Cell * const cell)
  * Assumes that the elements in the cell are sorted according to their
  * invariant values.
  */
-Partition::Cell *
-Partition::split_cell(Partition::Cell * const original_cell)
+Partition::Cell*
+Partition::split_cell(Partition::Cell* const original_cell)
 {
-  Cell *cell = original_cell;
+  Cell* cell = original_cell;
   const bool original_cell_was_in_splitting_queue =
     original_cell->in_splitting_queue;
-  Cell *largest_new_cell = 0;
+  Cell* largest_new_cell = 0;
 
   while(true) 
     {
-      unsigned int *ep = elements + cell->first;
-      const unsigned int * const lp = ep + cell->length;
+      unsigned int* ep = elements + cell->first;
+      const unsigned int* const lp = ep + cell->length;
       const unsigned int ival = invariant_values[*ep];
       invariant_values[*ep] = 0;
       element_to_cell_map[*ep] = cell;
@@ -898,10 +834,10 @@ Partition::split_cell(Partition::Cell * const original_cell)
       if(ep == lp)
 	break;
       
-      Cell * const new_cell = aux_split_in_two(cell,
-					       (ep - elements) - cell->first);
+      Cell* const new_cell = aux_split_in_two(cell,
+					      (ep - elements) - cell->first);
       
-      if(graph->compute_eqref_hash)
+      if(graph and graph->compute_eqref_hash)
 	{
 	  graph->eqref_hash.update(new_cell->first);
 	  graph->eqref_hash.update(new_cell->length);
@@ -909,26 +845,26 @@ Partition::split_cell(Partition::Cell * const original_cell)
 	}
       
       /* Add cells in splitting_queue */
-      assert(!new_cell->in_splitting_queue);
+      assert(!new_cell->is_in_splitting_queue());
       if(original_cell_was_in_splitting_queue)
 	{
 	  /* In this case, all new cells are inserted in splitting_queue */
-	  assert(cell->in_splitting_queue);
-	  add_in_splitting_queue(new_cell);
+	  assert(cell->is_in_splitting_queue());
+	  splitting_queue_add(new_cell);
 	}
       else
 	{
 	  /* Otherwise, we can omit one new cell from splitting_queue */
-	  assert(!cell->in_splitting_queue);
+	  assert(!cell->is_in_splitting_queue());
 	  if(largest_new_cell == 0) {
 	    largest_new_cell = cell;
 	  } else {
-	    assert(!largest_new_cell->in_splitting_queue);
+	    assert(!largest_new_cell->is_in_splitting_queue());
 	    if(cell->length > largest_new_cell->length) {
-	      add_in_splitting_queue(largest_new_cell);
+	      splitting_queue_add(largest_new_cell);
 	      largest_new_cell = cell;
 	    } else {
-	      add_in_splitting_queue(cell);
+	      splitting_queue_add(cell);
 	    }
 	  }
 	}
@@ -936,7 +872,6 @@ Partition::split_cell(Partition::Cell * const original_cell)
       cell = new_cell;
     }
 
-  consistency_check();
   
   if(original_cell == cell) {
     /* All the elements in cell had the same invariant value */
@@ -950,17 +885,17 @@ Partition::split_cell(Partition::Cell * const original_cell)
       assert(largest_new_cell);
       if(cell->length > largest_new_cell->length)
 	{
-	  add_in_splitting_queue(largest_new_cell);
+	  splitting_queue_add(largest_new_cell);
 	  largest_new_cell = cell;
 	}
       else
 	{
-	  add_in_splitting_queue(cell);
+	  splitting_queue_add(cell);
 	}
       if(largest_new_cell->is_unit())
 	{
 	  /* Needed in certificate computation */
-	  add_in_splitting_queue(largest_new_cell);
+	  splitting_queue_add(largest_new_cell);
 	}
     }
 
@@ -968,13 +903,12 @@ Partition::split_cell(Partition::Cell * const original_cell)
 }
 
 
-Partition::Cell *
-Partition::zplit_cell(Partition::Cell * const cell,
+Partition::Cell*
+Partition::zplit_cell(Partition::Cell* const cell,
 		      const bool max_ival_info_ok)
 {
-  BLISS_ASSERT(cell != 0);
 
-  Cell *last_new_cell = cell;
+  Cell* last_new_cell = cell;
 
   if(!max_ival_info_ok)
     {
@@ -1000,21 +934,22 @@ Partition::zplit_cell(Partition::Cell * const cell,
 #ifdef BLISS_CONSISTENCY_CHECKS
   /* Verify max_ival info */
   {
+    unsigned int nof_zeros = 0;
     unsigned int max_ival = 0;
     unsigned int max_ival_count = 0;
     unsigned int *ep = elements + cell->first;
     for(unsigned int i = cell->length; i > 0; i--, ep++)
       {
 	const unsigned int ival = invariant_values[*ep];
+	if(ival == 0)
+	  nof_zeros++;
 	if(ival > max_ival)
 	  {
 	    max_ival = ival;
 	    max_ival_count = 1;
 	  }
 	else if(ival == max_ival)
-	  {
-	    max_ival_count++;
-	  }
+	  max_ival_count++;
       }
     assert(max_ival == cell->max_ival);
     assert(max_ival_count == cell->max_ival_count);
@@ -1025,39 +960,184 @@ Partition::zplit_cell(Partition::Cell * const cell,
 
   if(cell->max_ival_count == cell->length)
     {
-      /* All invariant values are the same */
+      /* All invariant values are the same, clear 'em */
       if(cell->max_ival > 0)
 	clear_ivs(cell);
-      goto done;
+    }
+  else
+    {
+      /* All invariant values are not the same */
+      if(cell->max_ival == 1)
+	{
+	  /* Specialized splitting for cells with binary invariant values */
+	  last_new_cell = sort_and_split_cell1(cell);
+	}
+      else if(cell->max_ival < 256)
+	{
+	  /* Specialized splitting for cells with invariant values < 256 */
+	  last_new_cell = sort_and_split_cell255(cell, cell->max_ival);
+	}
+      else
+	{
+	  /* Generic sorting and splitting */
+	  const bool sorted = shellsort_cell(cell);
+	  assert(sorted);
+	  last_new_cell = split_cell(cell);
+	}
     }
 
-  /* All invariant values are not the same */
-  if(cell->max_ival == 1)
-    {
-      /* Specialized splitting for cells with binary invariant values */
-      last_new_cell = sort_and_split_cell1(cell);
-      goto done;
-    }
-  if(cell->max_ival < 256)
-    {
-      /* Specialized splitting for cells with invariant values < 256 */
-      last_new_cell = sort_and_split_cell255(cell, cell->max_ival);
-      goto done;
-    }
-  {
-    /* Generic sorting and splitting */
-    const bool sorted = shellsort_cell(cell);
-    assert(sorted);
-    last_new_cell = split_cell(cell);
-    goto done;
-  }
-
- done:
   cell->max_ival = 0;
   cell->max_ival_count = 0;
   return last_new_cell;
 }
 
+
+
+/*
+ *
+ * Component recursion specific code
+ *
+ */
+void
+Partition::cr_init()
+{
+  assert(bt_stack.empty());
+
+  cr_enabled = true;
+
+  if(cr_cells) free(cr_cells);
+  cr_cells = (CRCell*)malloc(N * sizeof(CRCell));
+  if(!cr_cells) {assert(false && "Mem out"); }
+
+  if(cr_levels) free(cr_levels);
+  cr_levels = (CRCell**)malloc(N * sizeof(CRCell*));
+  if(!cr_levels) {assert(false && "Mem out"); }
+
+  for(unsigned int i = 0; i < N; i++) {
+    cr_levels[i] = 0;
+    cr_cells[i].level = UINT_MAX;
+    cr_cells[i].next = 0;
+    cr_cells[i].prev_next_ptr = 0;
+  }
+
+  for(const Cell *cell = first_cell; cell; cell = cell->next)
+    cr_create_at_level_trailed(cell->first, 0);
+
+  cr_max_level = 0;
+}
+
+
+void
+Partition::cr_free()
+{
+  if(cr_cells) {free(cr_cells); cr_cells = 0; }
+  if(cr_levels) {free(cr_levels); cr_levels = 0; }
+
+  cr_created_trail.clear();
+  cr_splitted_level_trail.clear();
+  cr_bt_info.clear();
+  cr_max_level = 0;
+
+  cr_enabled = false;
+}
+
+
+unsigned int
+Partition::cr_split_level(const unsigned int level,
+			  const std::vector<unsigned int>& splitted_cells)
+{
+  assert(cr_enabled);
+  assert(level <= cr_max_level);
+  cr_levels[++cr_max_level] = 0;
+  cr_splitted_level_trail.push_back(level);
+
+  for(unsigned int i = 0; i < splitted_cells.size(); i++)
+    {
+      const unsigned int cell_index = splitted_cells[i];
+      assert(cell_index < N);
+      CRCell& cr_cell = cr_cells[cell_index];
+      assert(cr_cell.level == level);
+      cr_cell.detach();
+      cr_create_at_level(cell_index, cr_max_level);
+    }
+
+  return cr_max_level;
+}
+
+
+unsigned int
+Partition::cr_get_backtrack_point()
+{
+  assert(cr_enabled);
+  CR_BTInfo info;
+  info.created_trail_index = cr_created_trail.size();
+  info.splitted_level_trail_index = cr_splitted_level_trail.size();
+  cr_bt_info.push_back(info);
+  return cr_bt_info.size()-1;
+}
+
+
+void
+Partition::cr_goto_backtrack_point(const unsigned int btpoint)
+{
+  assert(cr_enabled);
+  assert(btpoint < cr_bt_info.size());
+  while(cr_created_trail.size() > cr_bt_info[btpoint].created_trail_index)
+    {
+      const unsigned int cell_index = cr_created_trail.back();
+      cr_created_trail.pop_back();
+      CRCell& cr_cell = cr_cells[cell_index];
+      assert(cr_cell.level != UINT_MAX);
+      assert(cr_cell.prev_next_ptr);
+      cr_cell.detach();
+    }
+
+  while(cr_splitted_level_trail.size() >
+	cr_bt_info[btpoint].splitted_level_trail_index)
+    {
+      const unsigned int dest_level = cr_splitted_level_trail.back();
+      cr_splitted_level_trail.pop_back();
+      assert(cr_max_level > 0);
+      assert(dest_level < cr_max_level);
+      while(cr_levels[cr_max_level]) {
+	CRCell *cr_cell = cr_levels[cr_max_level];
+	cr_cell->detach();
+	cr_create_at_level(cr_cell - cr_cells, dest_level);
+      }
+      cr_max_level--;
+    }
+  cr_bt_info.resize(btpoint);
+}
+
+
+void
+Partition::cr_create_at_level(const unsigned int cell_index,
+			      const unsigned int level)
+{
+  assert(cr_enabled);
+  assert(cell_index < N);
+  assert(level < N);
+  CRCell& cr_cell = cr_cells[cell_index];
+  assert(cr_cell.level == UINT_MAX);
+  assert(cr_cell.next == 0);
+  assert(cr_cell.prev_next_ptr == 0);
+  if(cr_levels[level])
+    cr_levels[level]->prev_next_ptr = &(cr_cell.next);
+  cr_cell.next = cr_levels[level];
+  cr_levels[level] = &cr_cell;
+  cr_cell.prev_next_ptr = &cr_levels[level];
+  cr_cell.level = level;
+}
+
+
+void
+Partition::cr_create_at_level_trailed(const unsigned int cell_index,
+				      const unsigned int level)
+{
+  assert(cr_enabled);
+  cr_create_at_level(cell_index, level);
+  cr_created_trail.push_back(cell_index);
+}
 
 
 } // namespace bliss

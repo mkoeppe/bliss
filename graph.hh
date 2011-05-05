@@ -2,9 +2,23 @@
 #define BLISS_GRAPH_HH
 
 /*
- * Copyright (c) Tommi Junttila
- * Released under the GNU General Public License version 2.
- */
+  Copyright (c) 2006-2011 Tommi Junttila
+  Released under the GNU General Public License version 3.
+  
+  This file is part of bliss.
+  
+  bliss is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3
+  as published by the Free Software Foundation.
+  
+  bliss is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 /**
  * \namespace bliss
@@ -30,26 +44,74 @@ namespace bliss {
 /**
  * \brief Statistics returned by the bliss search algorithm.
  */
-typedef struct t_Stats
+class Stats
 {
-  /** The size of the automorphism group. */
+  friend class AbstractGraph;
+  /** \internal The size of the automorphism group. */
   BigNum group_size;
-  /** An approximation (due to possible overflows) of
+  /** \internal An approximation (due to possible overflows) of
    * the size of the automorphism group. */
   long double group_size_approx;
-  /** The number of nodes in the search tree. */
+  /** \internal The number of nodes in the search tree. */
   long unsigned int nof_nodes;
-  /** The number of leaf nodes in the search tree. */
+  /** \internal The number of leaf nodes in the search tree. */
   long unsigned int nof_leaf_nodes;
-  /** The number of bad nodes in the search tree. */
+  /** \internal The number of bad nodes in the search tree. */
   long unsigned int nof_bad_nodes;
-  /** The number of canonical representative updates. */
+  /** \internal The number of canonical representative updates. */
   long unsigned int nof_canupdates;
-  /** The number of generator permutations. */
+  /** \internal The number of generator permutations. */
   long unsigned int nof_generators;
-  /** The maximal depth of the search tree. */
+  /** \internal The maximal depth of the search tree. */
   unsigned long int max_level;
-} Stats;
+  /** */
+  void reset()
+  {
+    group_size.assign(1);
+    group_size_approx = 1.0;
+    nof_nodes = 0;
+    nof_leaf_nodes = 0;
+    nof_bad_nodes = 0;
+    nof_canupdates = 0;
+    nof_generators = 0;
+    max_level = 0;
+  }
+public:
+  Stats() { reset(); }
+  /** Print the statistics. */
+  size_t print(FILE* const fp) const
+  {
+    size_t r = 0;
+    r += fprintf(fp, "Nodes:          %lu\n", nof_nodes);
+    r += fprintf(fp, "Leaf nodes:     %lu\n", nof_leaf_nodes);
+    r += fprintf(fp, "Bad nodes:      %lu\n", nof_bad_nodes);
+    r += fprintf(fp, "Canrep updates: %lu\n", nof_canupdates);
+    r += fprintf(fp, "Generators:     %lu\n", nof_generators);
+    r += fprintf(fp, "Max level:      %lu\n", max_level);
+    r += fprintf(fp, "|Aut|:          ")+group_size.print(fp)+fprintf(fp, "\n");
+    fflush(fp);
+    return r;
+  }
+  /** An approximation (due to possible overflows/rounding errors) of
+   * the size of the automorphism group. */
+  long double get_group_size_approx() const {return group_size_approx;}
+  /** The number of nodes in the search tree. */
+  long unsigned int get_nof_nodes() const {return nof_nodes;}
+  /** The number of leaf nodes in the search tree. */
+  long unsigned int get_nof_leaf_nodes() const {return nof_leaf_nodes;}
+  /** The number of bad nodes in the search tree. */
+  long unsigned int get_nof_bad_nodes() const {return nof_bad_nodes;}
+  /** The number of canonical representative updates. */
+  long unsigned int get_nof_canupdates() const {return nof_canupdates;}
+  /** The number of generator permutations. */
+  long unsigned int get_nof_generators() const {return nof_generators;}
+  /** The maximal depth of the search tree. */
+  unsigned long int get_max_level() const {return max_level;}
+};
+
+
+
+
 
 
 /**
@@ -77,6 +139,19 @@ protected:
    */
   bool in_search;
 
+  /** \internal
+   * Is failure recording in use?
+   */
+  bool opt_use_failure_recording;
+  /* The "tree-specific" invariant value for the point when current path
+   * got different from the first path */
+  unsigned int failure_recording_fp_deviation;
+
+  /** \internal
+   * Is component recursion in use?
+   */
+  bool opt_use_comprec;
+
 
   unsigned int refine_current_path_certificate_index;
   bool refine_compare_certificate;
@@ -84,6 +159,25 @@ protected:
   unsigned int refine_first_path_subcertificate_end;
   int refine_cmp_to_best;
   unsigned int refine_best_path_subcertificate_end;
+
+  static const unsigned int CERT_SPLIT = 0; //UINT_MAX;
+  static const unsigned int CERT_EDGE  = 1; //UINT_MAX-1;
+  /** \internal
+   * Add a triple (v1,v2,v3) in the certificate.
+   * May modify refine_equal_to_first and refine_cmp_to_best.
+   * May also update eqref_hash and failure_recording_fp_deviation. */
+  void cert_add(const unsigned int v1,
+		const unsigned int v2,
+		const unsigned int v3);
+
+  /** \internal
+   * Add a redundant triple (v1,v2,v3) in the certificate.
+   * Can also just dicard the triple.
+   * May modify refine_equal_to_first and refine_cmp_to_best.
+   * May also update eqref_hash and failure_recording_fp_deviation. */
+  void cert_add_redundant(const unsigned int x,
+			  const unsigned int y,
+			  const unsigned int z);
 
   /**\internal
    * Is the long prune method in use?
@@ -93,12 +187,12 @@ protected:
    * Maximum amount of memory (in megabytes) available for
    * the long prune method
    */
-  static const unsigned int long_prune_options_max_mem = 20;
+  static const unsigned int long_prune_options_max_mem = 50;
   /**\internal
    * Maximum amount of automorphisms stored for the long prune method;
    * less than this is stored if the memory limit above is reached first
    */
-  static const unsigned int long_prune_options_max_stored_auts = 50;
+  static const unsigned int long_prune_options_max_stored_auts = 100;
 
   unsigned int long_prune_max_stored_autss;
   std::vector<std::vector<bool> *> long_prune_fixed;
@@ -115,10 +209,10 @@ protected:
    */
   void long_prune_deallocate();
   void long_prune_add_automorphism(const unsigned int *aut);
-  std::vector<bool> &long_prune_get_fixed(const unsigned int index);
-  std::vector<bool> &long_prune_allocget_fixed(const unsigned int index);
-  std::vector<bool> &long_prune_get_mcrs(const unsigned int index);
-  std::vector<bool> &long_prune_allocget_mcrs(const unsigned int index);
+  std::vector<bool>& long_prune_get_fixed(const unsigned int index);
+  std::vector<bool>& long_prune_allocget_fixed(const unsigned int index);
+  std::vector<bool>& long_prune_get_mcrs(const unsigned int index);
+  std::vector<bool>& long_prune_allocget_mcrs(const unsigned int index);
   /** \internal
    * Swap the i:th and j:th stored automorphism information;
    * i and j must be "in window, i.e. in [long_prune_begin,long_prune_end[
@@ -130,19 +224,27 @@ protected:
    */
   Heap neighbour_heap;
   virtual bool split_neighbourhood_of_unit_cell(Partition::Cell *) = 0;
-  virtual void split_neighbourhood_of_cell(Partition::Cell * const) = 0;
+  virtual bool split_neighbourhood_of_cell(Partition::Cell * const) = 0;
   void refine_to_equitable();
   void refine_to_equitable(Partition::Cell * const unit_cell);
   void refine_to_equitable(Partition::Cell * const unit_cell1,
 			   Partition::Cell * const unit_cell2);
-  void do_refine_to_equitable();
+
+
+  /** \internal
+   * \return false if it was detected that the current certificate
+   *         is different from the first and/or best (whether this is checked
+   *         depends on in_search and refine_compare_certificate flags.
+   */
+  bool do_refine_to_equitable();
+
   unsigned int eqref_max_certificate_index;
-  bool eqref_worse_than_certificate;
   /** \internal
    * Whether eqref_hash is updated during equitable refinement process.
    */
   bool compute_eqref_hash;
   UintSeqHash eqref_hash;
+
 
   /** \internal
    * Check whether the current partition p is equitable.
@@ -168,19 +270,18 @@ protected:
   void reset_permutation(unsigned int *perm);
 
   /* Mainly for debugging purposes */
-  virtual bool is_automorphism(unsigned int * const perm);
+  virtual bool is_automorphism(unsigned int* const perm);
 
   std::vector<unsigned int> certificate_current_path;
   std::vector<unsigned int> certificate_first_path;
   std::vector<unsigned int> certificate_best_path;
 
-  unsigned int certificate_size;
   unsigned int certificate_index;
   virtual void initialize_certificate() = 0;
 
   virtual void remove_duplicate_edges() = 0;
   virtual void make_initial_equitable_partition() = 0;
-  virtual Partition::Cell *find_next_cell_to_be_splitted(Partition::Cell *cell) = 0;
+  virtual Partition::Cell* find_next_cell_to_be_splitted(Partition::Cell *cell) = 0;
 
 
   void search(const bool canonical, Stats &stats);
@@ -191,9 +292,79 @@ protected:
 		      const unsigned int *aut);
   void *report_user_param;
 
+
+  /*
+   *
+   * Nonuniform component recursion (NUCR)
+   *
+   */
+
+  /** The currently traversed component */
+  unsigned int cr_level;
+
+  /** \internal
+   * The "Component End Point" data structure
+   */
+  class CR_CEP {
+  public:
+    /** At which level in the search was this CEP created */
+    unsigned int creation_level;
+    /** The current component has been fully traversed when the partition has
+     * this many discrete cells left */
+    unsigned int discrete_cell_limit;
+    /** The component to be traversed after the current one */
+    unsigned int next_cr_level;
+    /** The next component end point */
+    unsigned int next_cep_index;
+    bool first_checked;
+    bool best_checked;
+  };
+  /** \internal
+   * A stack for storing Component End Points
+   */
+  std::vector<CR_CEP> cr_cep_stack;
+
+  /** \internal
+   * Find the first non-uniformity component at the component recursion
+   * level \a level.
+   * The component is stored in \a cr_component.
+   * If no component is found, \a cr_component is empty.
+   * Returns false if all the cells in the component recursion level \a level
+   * were discrete.
+   * Modifies the max_ival and max_ival_count fields of Partition:Cell
+   * (assumes that they are 0 when called and
+   *  quarantees that they are 0 when returned).
+   */
+  virtual bool nucr_find_first_component(const unsigned int level) {assert(false); }
+  virtual bool nucr_find_first_component(const unsigned int level,
+					 std::vector<unsigned int>& component,
+					 unsigned int& component_elements,
+					 Partition::Cell*& sh_return)
+  {assert(false); }
+  /** \internal
+   * The non-uniformity component found by nucr_find_first_component()
+   * is stored here.
+   */
+  std::vector<unsigned int> cr_component;
+  /** \internal
+   * The number of vertices in the component \a cr_component
+   */
+  unsigned int cr_component_elements;
+
+
+
+
 public:
   AbstractGraph();
   virtual ~AbstractGraph();
+
+  /**
+   * Check whether \a perm is an automorphism of this graph.
+   * Unoptimized, mainly for debugging purposes.
+   */
+  virtual bool is_automorphism(const std::vector<unsigned int>& perm) const;
+
+
 
   /**
    * Set the verbose output level for the algorithms.
@@ -207,6 +378,24 @@ public:
    */
   void set_verbose_file(FILE * const fp);
 
+  /** Activate/deactivate failure recording.
+   * May not be called during the search, i.e. from an automorphism reporting
+   * hook function.
+   * \param active  if true, activate failure recording, deactivate otherwise
+   */
+  void set_failure_recording(const bool active) {assert(!in_search); opt_use_failure_recording = active;}
+
+  /** Activate/deactivate component recursion.
+   * The choice affects the computed canonical labelings;
+   * therefore, if you want to compare whether two graphs are isomorphic by
+   * computing and comparing (for equality) their canonical versions,
+   * be sure to use the same choice for both graphs.
+   * May not be called during the search, i.e. from an automorphism reporting
+   * hook function.
+   * \param active  if true, activate component recursion, deactivate otherwise
+   */
+  void set_component_recursion(const bool active) {assert(!in_search); opt_use_comprec = active;}
+
 
 
   /**
@@ -214,7 +403,14 @@ public:
    */
   virtual unsigned int get_nof_vertices() const = 0;
 
-  virtual AbstractGraph *permute(const unsigned int *perm) const = 0;
+  /**
+   * Return a new graph that is the result of applying the permutation \a perm
+   * to this graph. This graph is not modified.
+   * \a perm must contain N=this.get_nof_vertices() elements and be a bijection
+   * on {0,1,...,N-1}, otherwise the result is undefined or a segfault.
+   */
+  virtual AbstractGraph* permute(const unsigned int* const perm) const = 0;
+  virtual AbstractGraph* permute(const std::vector<unsigned int>& perm) const = 0;
 
   /**
    * Find a set of generators for the automorphism group of the graph.
@@ -232,11 +428,11 @@ public:
    * Do not call any member functions in the hook.
    * The search statistics are copied in \a stats.
    */
-  void find_automorphisms(Stats &stats,
-			  void (*hook)(void *user_param,
+  void find_automorphisms(Stats& stats,
+			  void (*hook)(void* user_param,
 				       unsigned int n,
-				       const unsigned int *aut),
-			  void *hook_user_param);
+				       const unsigned int* aut),
+			  void* hook_user_param);
 
   /**
    * Otherwise the same as find_automorphisms() except that
@@ -253,11 +449,11 @@ public:
    * of bliss as well as on some other options (for instance, the splitting
    * heuristic selected with bliss::Graph::set_splitting_heuristic()).
    */
-  const unsigned int *canonical_form(Stats &stats,
-				     void (*hook)(void *user_param,
+  const unsigned int* canonical_form(Stats& stats,
+				     void (*hook)(void* user_param,
 						  unsigned int n,
-						  const unsigned int *aut),
-				     void *user_param);
+						  const unsigned int* aut),
+				     void* hook_user_param);
 
   /**
    * Write the graph to a file in a variant of the DIMACS format.
@@ -278,6 +474,7 @@ public:
 
   /**
    * Write the graph in a file in the graphviz dotty format.
+   * Do nothing if the file cannot be written.
    * \param file_name  the name of the file to which the graph is written
    */
   virtual void write_dot(const char * const file_name) = 0;
@@ -289,12 +486,19 @@ public:
   virtual unsigned int get_hash() = 0;
 
   /**
-   * Disable/enable the long prune method.
+   * Disable/enable the "long prune" method.
+   * The choice affects the computed canonical labelings;
+   * therefore, if you want to compare whether two graphs are isomorphic by
+   * computing and comparing (for equality) their canonical versions,
+   * be sure to use the same choice for both graphs.
    * May not be called during the search, i.e. from an automorphism reporting
    * hook function.
+   * \param active  if true, activate "long prune", deactivate otherwise
    */
   void set_long_prune_activity(const bool active) {
-    assert(!in_search); opt_use_long_prune = active; }
+    assert(!in_search);
+    opt_use_long_prune = active;
+  }
 
 };
 
@@ -347,14 +551,15 @@ protected:
     Vertex();
     ~Vertex();
     void add_edge(const unsigned int other_vertex);
-    void remove_duplicate_edges(bool * const);
+    void remove_duplicate_edges(std::vector<bool>& tmp);
     void sort_edges();
 
     unsigned int color;
-    unsigned int nof_edges;
     std::vector<unsigned int> edges;
+    unsigned int nof_edges() const {return edges.size(); }
   };
   std::vector<Vertex> vertices;
+  void sort_edges();
   void remove_duplicate_edges();
 
   /** \internal
@@ -362,7 +567,7 @@ protected:
    * Returns the color of the vertex.
    * Time complexity: O(1).
    */
-  static unsigned int vertex_color_invariant(Graph * const g,
+  static unsigned int vertex_color_invariant(const Graph* const g,
 					     const unsigned int v);
   /** \internal
    * Partition independent invariant.
@@ -370,47 +575,56 @@ protected:
    * DUPLICATE EDGES MUST HAVE BEEN REMOVED BEFORE.
    * Time complexity: O(1).
    */
-  static unsigned int degree_invariant(Graph * const g,
+  static unsigned int degree_invariant(const Graph* const g,
 				       const unsigned int v);
   /** \internal
    * Partition independent invariant.
    * Returns 1 if there is an edge from the vertex to itself, 0 if not.
    * Time complexity: O(k), where k is the number of edges leaving the vertex.
    */
-  static unsigned int selfloop_invariant(Graph * const g,
+  static unsigned int selfloop_invariant(const Graph* const g,
 					 const unsigned int v);
 
 
-  bool refine_according_to_invariant(unsigned int (*inv)(Graph * const g,
-							 unsigned int v));
+  bool refine_according_to_invariant(unsigned int (*inv)(const Graph* const g,
+							 const unsigned int v));
 
   /*
    * Routines needed when refining the partition p into equitable
    */
   bool split_neighbourhood_of_unit_cell(Partition::Cell *);
-  void split_neighbourhood_of_cell(Partition::Cell * const);
+  bool split_neighbourhood_of_cell(Partition::Cell * const);
 
   /** \internal
    * \copydoc AbstractGraph::is_equitable() const
    */
   bool is_equitable() const;
 
-  /* Splitting heuristics, documented in more detail in the cc-file. */
+  /* Splitting heuristics, documented in more detail in graph.cc */
   SplittingHeuristic sh;
-  Partition::Cell *find_next_cell_to_be_splitted(Partition::Cell *cell);
-  Partition::Cell *sh_first(Partition::Cell *cell);
-  Partition::Cell *sh_first_smallest(Partition::Cell *cell);
-  Partition::Cell *sh_first_largest(Partition::Cell *cell);
-  Partition::Cell *sh_first_max_neighbours(Partition::Cell *cell);
-  Partition::Cell *sh_first_smallest_max_neighbours(Partition::Cell *cell);
-  Partition::Cell *sh_first_largest_max_neighbours(Partition::Cell *cell);
+  Partition::Cell* find_next_cell_to_be_splitted(Partition::Cell *cell);
+  Partition::Cell* sh_first();
+  Partition::Cell* sh_first_smallest();
+  Partition::Cell* sh_first_largest();
+  Partition::Cell* sh_first_max_neighbours();
+  Partition::Cell* sh_first_smallest_max_neighbours();
+  Partition::Cell* sh_first_largest_max_neighbours();
+
 
   void make_initial_equitable_partition();
+
   void initialize_certificate();
+  
+  bool is_automorphism(unsigned int* const perm);
 
-  bool is_automorphism(unsigned int * const perm);
 
-  void sort_edges();
+  bool nucr_find_first_component(const unsigned int level);
+  bool nucr_find_first_component(const unsigned int level,
+				 std::vector<unsigned int>& component,
+				 unsigned int& component_elements,
+				 Partition::Cell*& sh_return);
+
+
 
 public:
   /**
@@ -437,24 +651,30 @@ public:
    * \return        a new Graph object or 0 if reading failed for some
    *                reason
    */
-  static Graph *read_dimacs(FILE * const fp, FILE * const errstr = stderr);
+  static Graph* read_dimacs(FILE* const fp, FILE* const errstr = stderr);
 
   /**
    * Write the graph to a file in a variant of the DIMACS format.
    * See the <A href="http://www.tcs.hut.fi/Software/bliss/">bliss website</A>
    * for the definition of the file format.
    */
-  void write_dimacs(FILE * const fp);
+  void write_dimacs(FILE* const fp);
 
   /**
    * \copydoc AbstractGraph::write_dot(FILE * const fp)
    */
-  void write_dot(FILE * const fp);
+  void write_dot(FILE* const fp);
 
   /**
    * \copydoc AbstractGraph::write_dot(const char * const file_name)
    */
-  void write_dot(const char * const file_name);
+  void write_dot(const char* const file_name);
+
+  /**
+   * \copydoc AbstractGraph::is_automorphism(const std::vector<unsigned int>& perm) const
+   */
+  bool is_automorphism(const std::vector<unsigned int>& perm) const;
+
 
   /**
    * \copydoc AbstractGraph::get_hash()
@@ -467,12 +687,10 @@ public:
   unsigned int get_nof_vertices() const {return vertices.size(); }
 
   /**
-   * Return a new graph that is the result of applying the permutation \a perm
-   * to this graph. This graph is not modified.
-   * \a perm must contain N=this.get_nof_vertices() elements and be a bijection
-   * on {0,1,...,N-1}, otherwise the result is undefined or a segfault.
+   * \copydoc AbstractGraph::permute(const unsigned int* const perm) const
    */
-  Graph *permute(const unsigned int *perm) const;
+  Graph* permute(const unsigned int* const perm) const;
+  Graph* permute(const std::vector<unsigned int>& perm) const;
   
   /**
    * Add a new vertex with color \a color in the graph and return its index.
@@ -497,7 +715,7 @@ public:
    * Returns 0 if the graphs are equal, and a negative (positive) integer
    * if this graph is "smaller than" ("greater than", resp.) than \a other.
    */
-  int cmp(Graph *other);
+  int cmp(Graph& other);
 
   /**
    * Set the splitting heuristic used by the automorphism and canonical
@@ -563,13 +781,13 @@ protected:
     ~Vertex();
     void add_edge_to(const unsigned int dest_vertex);
     void add_edge_from(const unsigned int source_vertex);
-    void remove_duplicate_edges(bool * const);
+    void remove_duplicate_edges(std::vector<bool>& tmp);
     void sort_edges();
     unsigned int color;
     std::vector<unsigned int> edges_out;
     std::vector<unsigned int> edges_in;
-    unsigned int get_nof_edges_in() const {return edges_in.size(); }
-    unsigned int get_nof_edges_out() const {return edges_out.size(); }
+    unsigned int nof_edges_in() const {return edges_in.size(); }
+    unsigned int nof_edges_out() const {return edges_out.size(); }
   };
   std::vector<Vertex> vertices;
   void remove_duplicate_edges();
@@ -579,7 +797,7 @@ protected:
    * Returns the color of the vertex.
    * Time complexity: O(1).
    */
-  static unsigned int vertex_color_invariant(Digraph * const g,
+  static unsigned int vertex_color_invariant(const Digraph* const g,
 					     const unsigned int v);
   /** \internal
    * Partition independent invariant.
@@ -587,7 +805,7 @@ protected:
    * DUPLICATE EDGES MUST HAVE BEEN REMOVED BEFORE.
    * Time complexity: O(1).
    */
-  static unsigned int indegree_invariant(Digraph * const g,
+  static unsigned int indegree_invariant(const Digraph* const g,
 					 const unsigned int v);
   /** \internal
    * Partition independent invariant.
@@ -595,28 +813,29 @@ protected:
    * DUPLICATE EDGES MUST HAVE BEEN REMOVED BEFORE.
    * Time complexity: O(1).
    */
-  static unsigned int outdegree_invariant(Digraph * const g,
+  static unsigned int outdegree_invariant(const Digraph* const g,
 					  const unsigned int v);
   /** \internal
    * Partition independent invariant.
    * Returns 1 if there is an edge from the vertex to itself, 0 if not.
    * Time complexity: O(k), where k is the number of edges leaving the vertex.
    */
-  static unsigned int selfloop_invariant(Digraph * const g,
+  static unsigned int selfloop_invariant(const Digraph* const g,
 					 const unsigned int v);
 
   /** \internal
    * Refine the partition \a p according to
    * the partition independent invariant \a inv.
    */
-  bool refine_according_to_invariant(unsigned int (*inv)(Digraph * const g,
-							 unsigned int v));
+  bool refine_according_to_invariant(unsigned int (*inv)(const Digraph* const g,
+							 const unsigned int v));
 
   /*
    * Routines needed when refining the partition p into equitable
    */
-  bool split_neighbourhood_of_unit_cell(Partition::Cell *);
-  void split_neighbourhood_of_cell(Partition::Cell * const);
+  bool split_neighbourhood_of_unit_cell(Partition::Cell* const);
+  bool split_neighbourhood_of_cell(Partition::Cell* const);
+
 
   /** \internal
    * \copydoc AbstractGraph::is_equitable() const
@@ -625,20 +844,27 @@ protected:
 
   /* Splitting heuristics, documented in more detail in the cc-file. */
   SplittingHeuristic sh;
-  Partition::Cell *find_next_cell_to_be_splitted(Partition::Cell *cell);
-  Partition::Cell *sh_first(Partition::Cell *cell);
-  Partition::Cell *sh_first_smallest(Partition::Cell *cell);
-  Partition::Cell *sh_first_largest(Partition::Cell *cell);
-  Partition::Cell *sh_first_max_neighbours(Partition::Cell *cell);
-  Partition::Cell *sh_first_smallest_max_neighbours(Partition::Cell *cell);
-  Partition::Cell *sh_first_largest_max_neighbours(Partition::Cell *cell);
+  Partition::Cell* find_next_cell_to_be_splitted(Partition::Cell *cell);
+  Partition::Cell* sh_first();
+  Partition::Cell* sh_first_smallest();
+  Partition::Cell* sh_first_largest();
+  Partition::Cell* sh_first_max_neighbours();
+  Partition::Cell* sh_first_smallest_max_neighbours();
+  Partition::Cell* sh_first_largest_max_neighbours();
 
   void make_initial_equitable_partition();
+
   void initialize_certificate();
 
-  bool is_automorphism(unsigned int * const perm);
+  bool is_automorphism(unsigned int* const perm);
 
   void sort_edges();
+
+  bool nucr_find_first_component(const unsigned int level);
+  bool nucr_find_first_component(const unsigned int level,
+				 std::vector<unsigned int>& component,
+				 unsigned int& component_elements,
+				 Partition::Cell*& sh_return);
 
 public:
   /**
@@ -664,12 +890,12 @@ public:
    * \return        a new Digraph object or 0 if reading failed for some
    *                reason
    */
-  static Digraph *read_dimacs(FILE * const fp, FILE * const errstr = stderr);
+  static Digraph* read_dimacs(FILE* const fp, FILE* const errstr = stderr);
 
   /**
    * \copydoc AbstractGraph::write_dimacs(FILE * const fp)
    */
-  void write_dimacs(FILE * const fp);
+  void write_dimacs(FILE* const fp);
 
 
   /**
@@ -681,6 +907,13 @@ public:
    * \copydoc AbstractGraph::write_dot(const char * const file_name)
    */
   void write_dot(const char * const file_name);
+
+  /**
+   * \copydoc AbstractGraph::is_automorphism(const std::vector<unsigned int>& perm) const
+   */
+  bool is_automorphism(const std::vector<unsigned int>& perm) const;
+
+
 
   /**
    * \copydoc AbstractGraph::get_hash()
@@ -711,6 +944,13 @@ public:
   void change_color(const unsigned int vertex, const unsigned int color);
 
   /**
+   * Compare this graph with the graph \a other.
+   * Returns 0 if the graphs are equal, and a negative (positive) integer
+   * if this graph is "smaller than" ("greater than", resp.) than \a other.
+   */
+  int cmp(Digraph& other);
+
+  /**
    * Set the splitting heuristic used by the automorphism and canonical
    * labeling algorithm.
    * The selected splitting heuristics affects the computed canonical
@@ -722,12 +962,10 @@ public:
   void set_splitting_heuristic(SplittingHeuristic shs) {sh = shs; }
 
   /**
-   * Return a new graph that is the result of applying the permutation \a perm
-   * to this graph. This graph is not modified.
-   * \a perm must contain N=this.get_nof_vertices() elements and be a bijection
-   * on {0,1,...,N-1}, otherwise the result is undefined or a segfault.
+   * \copydoc AbstractGraph::permute(const unsigned int* const perm) const
    */
-  Digraph *permute(const unsigned int *perm) const;  
+  Digraph* permute(const unsigned int* const perm) const;  
+  Digraph* permute(const std::vector<unsigned int>& perm) const;
 };
 
 

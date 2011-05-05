@@ -4,9 +4,23 @@
 #include "orbit.hh"
 
 /*
- * Copyright (c) Tommi Junttila
- * Released under the GNU General Public License version 2.
- */
+  Copyright (c) 2006-2011 Tommi Junttila
+  Released under the GNU General Public License version 3.
+  
+  This file is part of bliss.
+  
+  bliss is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3
+  as published by the Free Software Foundation.
+  
+  bliss is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 namespace bliss {
 
@@ -65,9 +79,6 @@ void Orbit::reset()
 
 void Orbit::merge_orbits(OrbitEntry *orbit1, OrbitEntry *orbit2)
 {
-  BLISS_ASSERT((orbit1 == orbit2) == (orbit1->element == orbit2->element));
-  BLISS_ASSERT(orbit1->element < nof_elements);
-  BLISS_ASSERT(orbit2->element < nof_elements);
 
   if(orbit1 != orbit2)
     {
@@ -103,8 +114,6 @@ void Orbit::merge_orbits(OrbitEntry *orbit1, OrbitEntry *orbit2)
 
 void Orbit::merge_orbits(unsigned int e1, unsigned int e2)
 {
-  BLISS_ASSERT(e1 < nof_elements);
-  BLISS_ASSERT(e2 < nof_elements);
 
   merge_orbits(in_orbit[e1], in_orbit[e2]);
 }
@@ -118,18 +127,15 @@ bool Orbit::is_minimal_representative(unsigned int element) const
 
 unsigned int Orbit::get_minimal_representative(unsigned int element) const
 {
-  BLISS_ASSERT(element < nof_elements);
 
   OrbitEntry * const orbit = in_orbit[element];
 
-  BLISS_ASSERT(orbit->element <= element);
   return(orbit->element);
 }
 
 
 unsigned int Orbit::orbit_size(unsigned int element) const
 {
-  BLISS_ASSERT(element < nof_elements);
   
   return(in_orbit[element]->size);
 }

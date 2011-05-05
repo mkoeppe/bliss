@@ -1,5 +1,6 @@
-#ifndef BLISS_TIMER_HH
-#define BLISS_TIMER_HH
+#include <cstdlib>
+#include <cstdio>
+#include "defs.hh"
 
 /*
   Copyright (c) 2006-2011 Tommi Junttila
@@ -20,33 +21,19 @@
   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 namespace bliss {
 
-/** \internal
- * \brief A very simple wrapper class for measuring elapsed user+system time.
- */
-
-class Timer
+void
+fatal_error(const char* fmt, ...)
 {
-  double start_time;
-public:
-  /**
-   * Create and start a new timer.
-   */
-  Timer();
+  va_list ap;
+  va_start(ap, fmt);
+  fprintf(stderr,"Bliss fatal error: ");
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\nAborting!\n");
+  va_end(ap);
+  exit(1);
+}
 
-  /**
-   * Reset the timer.
-   */
-  void reset();
-
-  /**
-   * Get the user+system time (in seconds) elapsed since the creation or
-   * the last reset() call of the timer.
-   */
-  double get_duration();
-};
-
-} // namespace bliss
-
-#endif
+}

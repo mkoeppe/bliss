@@ -2,9 +2,23 @@
 #define BLISS_BIGNUM_HH
 
 /*
- * Copyright (c) Tommi Junttila
- * Released under the GNU General Public License version 2.
- */
+  Copyright (c) 2006-2011 Tommi Junttila
+  Released under the GNU General Public License version 3.
+  
+  This file is part of bliss.
+  
+  bliss is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 3
+  as published by the Free Software Foundation.
+  
+  bliss is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #if defined(BLISS_USE_GMP)
 #include <gmp.h>
@@ -25,9 +39,7 @@ namespace bliss {
  * approximate big integers.
  */
 
-
 #if defined(BLISS_USE_GMP)
-
 
 class BigNum
 {
@@ -44,19 +56,19 @@ public:
   ~BigNum() {mpz_clear(v); }
 
   /**
-   * Set the number to 'n'.
+   * Set the number to \a n.
    */
   void assign(const int n) {mpz_set_si(v, n); }
 
   /**
-   * Multiply the number with 'n'.
+   * Multiply the number with \a n.
    */
   void multiply(const int n) {mpz_mul_si(v, v, n); }
 
   /**
-   * Print the number in the file stream 'fp'.
+   * Print the number in the file stream \a fp.
    */
-  int print(FILE *fp) {return mpz_out_str(fp, 10, v); }
+  size_t print(FILE* const fp) const {return mpz_out_str(fp, 10, v); }
 };
 
 #else
@@ -71,19 +83,19 @@ public:
   BigNum(): v(0.0) {}
 
   /**
-   * Set the number to 'n'.
+   * Set the number to \a n.
    */
   void assign(const int n) {v = (long double)n; }
 
   /**
-   * Multiply the number with 'n'.
+   * Multiply the number with \a n.
    */
   void multiply(const int n) {v *= (long double)n; }
 
   /**
-   * Print the number in the file stream 'fp'.
+   * Print the number in the file stream \a fp.
    */
-  int print(FILE *fp) {return fprintf(fp, "%Lg", v); }
+  size_t print(FILE* const fp) const {return fprintf(fp, "%Lg", v); }
 };
 
 #endif
