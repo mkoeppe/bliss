@@ -1,6 +1,6 @@
 include Makefile
 
-SONAME=libbliss.so.0d
+SONAME=libbliss.so.1d
 SOMINOR=0
 SOFULL=$(SONAME).$(SOMINOR)
 

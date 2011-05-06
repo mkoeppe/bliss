@@ -18,7 +18,7 @@ Description: tool to compute graph automorphisms and labelings
  graphs are provided. This package provides the command line tool 
  bliss; a C++ and C API is also available.
 
-Package: libbliss0d
+Package: libbliss1d
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libbliss-dev
@@ -32,7 +32,7 @@ Description: library to compute graph automorphisms and labelings
  
 Package: libbliss-dev
 Architecture: any
-Depends: ${misc:Depends}, libbliss0d (=${binary:Version})
+Depends: ${misc:Depends}, libbliss1d (=${binary:Version})
 Suggests: bliss
 Section: libdevel
 Description: development files to compute graph automorphisms and labelings

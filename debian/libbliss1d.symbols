@@ -1,4 +1,4 @@
-libbliss.so.0d libbliss0d #MINVER#
+libbliss.so.1d libbliss1d #MINVER#
  _ZN5bliss11UintSeqHash6updateEj@Base 0.50
  _ZN5bliss11fatal_errorEPKcz@Base 0.71-1
  _ZN5bliss13AbstractGraph14canonical_formERNS_5StatsEPFvPvjPKjES3_@Base 0.71-1
