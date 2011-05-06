@@ -2,7 +2,7 @@ Source: bliss
 Section: math
 Priority: optional
 Maintainer: David Bremner <bremner@debian.org>
-Build-Depends: debhelper (>= 7.0.50~), libgmp3-dev, xsltproc, docbook-xsl, 
+Build-Depends: debhelper (>= 7.0.50~), libgmp-dev, xsltproc, docbook-xsl, 
 	       docbook-xml, doxygen
 Standards-Version: 3.9.1
 Homepage: http://www.tcs.hut.fi/Software/bliss/index.shtml

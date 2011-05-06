@@ -6,6 +6,12 @@ bliss (0.71-1) unstable; urgency=low
 
  -- David Bremner <bremner@debian.org>  Thu, 05 May 2011 19:11:51 -0300
 
+bliss (0.50-1.1) unstable; urgency=low
+
+  * NMU.  Build with unversioned libgmp-dev.
+
+ -- Steve M. Robbins <smr@debian.org>  Tue, 15 Mar 2011 01:46:08 -0500
+
 bliss (0.50-1) unstable; urgency=low
 
   * Initial release (Closes: #528925) 
