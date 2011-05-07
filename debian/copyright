@@ -7,17 +7,22 @@ Original source download from:
 Authors: Tommi Junttila and Petteri Kaski
 
 Files: *
-Copyright: © 2003-2007 Tommi Junttila 
-Licence: GPL2
+Copyright: © 2003-2011 Tommi Junttila 
+Licence: GPL3
 License:
-   This package is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation.
+    bliss is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License version 3
+    as published by the Free Software Foundation.
 
+    bliss is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+  
 Files: debian/*
-Copyright:  © 2009 David Bremner
+Copyright:  © 2009-2011 David Bremner
 License: same as upstream
 
 On Debian systems, the complete text of the GNU General
-Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+Public License version 2 can be found in `/usr/share/common-licenses/GPL-3'.
 
