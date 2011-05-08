@@ -1,6 +1,12 @@
+bliss (0.71-3) unstable; urgency=low
+
+  * Fix changelog typo
+
+ -- David Bremner <bremner@debian.org>  Sun, 08 May 2011 08:10:16 -0300
+
 bliss (0.71-2) unstable; urgency=low
 
-  * Remove symbols file (Closes: #628028)
+  * Remove symbols file (Closes: #626028)
 
  -- David Bremner <bremner@debian.org>  Sun, 08 May 2011 06:38:42 -0300
 
