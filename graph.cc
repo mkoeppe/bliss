@@ -1379,9 +1379,9 @@ AbstractGraph::search(const bool canonical, Stats& stats)
 		      }
 		    else
 		      {
+			assert(cep.creation_level < search_stack.size());
+			TreeNode& old_info = search_stack[cep.creation_level];
 			if(child_node.cmp_to_best_path == 0) {
-			  assert(cep.creation_level < search_stack.size());
-			  TreeNode& old_info = search_stack[cep.creation_level];
 			  /* If the component was found when on the best path,
 			   * handle the found automorphism as the other
 			   * best path automorphisms */
@@ -1398,47 +1398,65 @@ AbstractGraph::search(const bool canonical, Stats& stats)
 			      continue;
 			    }
 			}
-			else
-			  {
-			    assert(child_node.cmp_to_best_path > 0);
-			    // Do the "smashing" here...
-			    //fprintf(stdout, "Level %u: NEW BEST\n", childlevel); fflush(stdout);
-			    stats.nof_canupdates++;
-			    /*
-			     * Update canonical labeling and its inverse
-			     */
-			    for(unsigned int i = 0; i < N; i++) {
-			      if(!p.get_cell(p.elements[i])->is_unit())
-				continue;
-			      best_path_labeling[p.elements[i]] = i;
-			      best_path_labeling_inv[i] = p.elements[i];
+			else {
+			  assert(child_node.cmp_to_best_path > 0);
+			  if(old_info.in_best_path)
+			    {
+			      stats.nof_canupdates++;
+			      /*
+			       * Update canonical labeling and its inverse
+			       */
+			      for(unsigned int i = 0; i < N; i++) {
+				if(p.get_cell(p.elements[i])->is_unit()) {
+				  best_path_labeling[p.elements[i]] = i;
+				  best_path_labeling_inv[i] = p.elements[i];
+				}
+			      }
+			      //update_labeling_and_its_inverse(best_path_labeling, best_path_labeling_inv);
+			      /* Reset best path automorphism */
+			      reset_permutation(best_path_automorphism);
+			      /* Reset best path orbit structure */
+			      best_path_orbits.reset();
+			      /* Mark to be the best one and save prefix */
+			      unsigned int postfix_start = cep.creation_level;
+			      assert(postfix_start < best_path_info.size());
+			      while(p.get_cell(best_path_info[postfix_start].splitting_element)->is_unit()) {
+				postfix_start++;
+				assert(postfix_start < best_path_info.size());
+			      }
+			      unsigned int postfix_start_cert = best_path_info[postfix_start].certificate_index;
+			      std::vector<PathInfo> best_path_temp = best_path_info;
+			      best_path_info.clear();
+			      for(unsigned int i = 0; i < search_stack.size(); i++) {
+				TreeNode& ss_info = search_stack[i];
+				PathInfo  bp_info;
+				ss_info.cmp_to_best_path = 0;
+				ss_info.in_best_path = true;
+				bp_info.splitting_element = ss_info.split_element;
+				bp_info.certificate_index = ss_info.certificate_index;
+				bp_info.subcertificate_length = ss_info.subcertificate_length;
+				bp_info.eqref_hash = ss_info.eqref_hash;
+				best_path_info.push_back(bp_info);
+			      }
+			      /* Copy the postfix of the previous best path */
+			      for(unsigned int i = postfix_start;
+				  i < best_path_temp.size();
+				  i++)
+				{
+				  best_path_info.push_back(best_path_temp[i]);
+				  best_path_info[best_path_info.size()-1].certificate_index =
+				    best_path_info[best_path_info.size()-2].certificate_index +
+				    best_path_info[best_path_info.size()-2].subcertificate_length;
+				}
+			      std::vector<unsigned int> certificate_best_path_old = certificate_best_path;
+			      certificate_best_path = certificate_current_path;
+			      for(unsigned int i = postfix_start_cert;  i < certificate_best_path_old.size(); i++)
+				certificate_best_path.push_back(certificate_best_path_old[i]);
+			      assert(certificate_best_path.size() == best_path_info.back().certificate_index + best_path_info.back().subcertificate_length);
+			      /* Backtrack to the previous level */
+			      continue;
 			    }
-			    //update_labeling_and_its_inverse(best_path_labeling, best_path_labeling_inv);
-			    /* Reset best path automorphism */
-			    reset_permutation(best_path_automorphism);
-			    /* Reset best path orbit structure */
-			    best_path_orbits.reset();
-			    /* Mark to be the best one and save prefix */
-			    const unsigned int base_size = search_stack.size();
-			    assert(current_level+1 == base_size);
-			    assert(base_size <= best_path_info.size());
-			    for(unsigned int i = 0; i < base_size; i++) {
-			      TreeNode& ss_info = search_stack[i];
-			      PathInfo& bp_info = best_path_info[i];
-			      ss_info.cmp_to_best_path = 0;
-			      ss_info.in_best_path = true;
-			      bp_info.splitting_element = ss_info.split_element;
-			      bp_info.certificate_index = ss_info.certificate_index;
-			      bp_info.subcertificate_length = ss_info.subcertificate_length;
-			      bp_info.eqref_hash = ss_info.eqref_hash;
-			    }
-			    const unsigned int cert_end = current_node.certificate_index + current_node.subcertificate_length;
-			    assert(certificate_current_path.size() <= cert_end);
-			    for(unsigned int i = 0; i < cert_end; i++)
-			      certificate_best_path[i] = certificate_current_path[i];
-			    /* Backtrack to the previous level */
-			    continue;
-			  }
+			}
 		      }
 		  }
 
@@ -1532,8 +1550,8 @@ AbstractGraph::search(const bool canonical, Stats& stats)
 	    PathInfo path_info;
 	    path_info.splitting_element = search_stack[i].split_element;
 	    path_info.certificate_index = search_stack[i].certificate_index;
-	    path_info.eqref_hash = search_stack[i].eqref_hash;
 	    path_info.subcertificate_length = search_stack[i].subcertificate_length;
+	    path_info.eqref_hash = search_stack[i].eqref_hash;
 	    best_path_info.push_back(path_info);
 	  }
 	  certificate_best_path = certificate_current_path;
