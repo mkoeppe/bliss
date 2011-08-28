@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: David Bremner <bremner@debian.org>
 Build-Depends: debhelper (>= 7.0.50~), libgmp-dev, xsltproc, docbook-xsl, 
 	       docbook-xml, doxygen
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Homepage: http://www.tcs.hut.fi/Software/bliss/index.shtml
 
 Package: bliss

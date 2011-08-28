@@ -1,7 +1,8 @@
 bliss (0.72-1) unstable; urgency=low
 
   * Fix changelog bug number typo
-  * New upstrean version
+  * New upstream version
+  * Bump standards version to 3.9.2 (no changes)
   * Update package description, thanks to Martin Eberhard
     Schauer and Justin B Rye (Closes: #634057).
 
