@@ -12,11 +12,12 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libbliss-dev
 Description: tool to compute graph automorphisms and labelings
- Bliss is a backtracking algorithm based on individualization and
- refinement for labeling a graph.  Data structures, subroutines, and
- pruning heuristics especially for fast handling of large and sparse
- graphs are provided. This package provides the command line tool 
- bliss; a C++ and C API is also available.
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package provides the command line tool bliss.
 
 Package: libbliss1d
 Architecture: any
@@ -24,21 +25,23 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libbliss-dev
 Section: libs
 Description: library to compute graph automorphisms and labelings
- Bliss is a backtracking algorithm based on individualization and
- refinement for labeling a graph.  Data structures, subroutines, and
- pruning heuristics especially for fast handling of large and sparse
- graphs are provided. This package provides the shared library; a C++
- and C API is also available.
- 
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package provides the shared library.
+
 Package: libbliss-dev
 Architecture: any
 Depends: ${misc:Depends}, libbliss1d (=${binary:Version})
 Suggests: bliss
 Section: libdevel
 Description: development files to compute graph automorphisms and labelings
- Bliss is a backtracking algorithm based on individualization and
- refinement for labeling a graph.  Data structures, subroutines, and
- pruning heuristics especially for fast handling of large and sparse
- graphs are provided. This package provides the C++ and C API; a
- command line tool is also available.
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package provides the C/C++ development API.
 
