@@ -6,6 +6,9 @@ SOFULL=$(SONAME).$(SOMINOR)
 
 GMPSHOBJS=$(addsuffix s, $(GMPOBJS))
 
+LIB += -lgmp
+CFLAGS += -DBLISS_USE_GMP
+
 default: libbliss.so
 
 %.ogs: %.cc

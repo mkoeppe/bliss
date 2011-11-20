@@ -1,6 +1,7 @@
 bliss (0.72-2) unstable; urgency=low
 
   * Add debugging libraries.
+  * Actually build with GMP, as promised in README.Debian.
 
  -- David Bremner <bremner@debian.org>  Sun, 20 Nov 2011 11:41:31 -0400
 
