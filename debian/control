@@ -45,3 +45,16 @@ Description: development files to compute graph automorphisms and labelings
  .
  This package provides the C/C++ development API.
 
+Package: libbliss1d-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: libbliss1d (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for libbliss1d
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package contains the debugging symbols for libliss1d
+

@@ -1,3 +1,9 @@
+bliss (0.72-2) unstable; urgency=low
+
+  * Add debugging libraries.
+
+ -- David Bremner <bremner@debian.org>  Sun, 20 Nov 2011 11:41:31 -0400
+
 bliss (0.72-1) unstable; urgency=low
 
   * Fix changelog bug number typo
