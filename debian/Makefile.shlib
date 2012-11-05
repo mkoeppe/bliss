@@ -15,7 +15,7 @@ default: libbliss.so
 	$(CC) -fPIC -c $(CFLAGS) -o $@ $<
 
 libbliss.so: $(GMPSHOBJS)
-	$(CC) -shared -Wl,-soname,$(SONAME) -o $(SOFULL) $^
+	$(CC) -shared -Wl,-soname,$(SONAME) $(LIB) -o $(SOFULL) $^
 	ln -sf $(SOFULL) $(SONAME)
 	ln -sf $(SOFULL) libbliss.so
 
