@@ -1,3 +1,10 @@
+bliss (0.72-4) unstable; urgency=low
+
+  * Force BLISS_USE_GMP to be defined so that user compiled code matches
+    the library.
+
+ -- David Bremner <bremner@debian.org>  Mon, 05 Nov 2012 20:14:20 -0400
+
 bliss (0.72-3) unstable; urgency=low
 
   * Link libbliss.so.1d.0 against gmp (Closes: #685390).
