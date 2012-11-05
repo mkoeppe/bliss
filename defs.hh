@@ -23,6 +23,8 @@
   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#undef BLISS_USE_GMP
+#define BLISS_USE_GMP
 
 namespace bliss {
 
