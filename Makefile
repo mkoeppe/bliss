@@ -3,7 +3,7 @@ CFLAGS += -g
 #CFLAGS += -pg
 CFLAGS += -Wall
 CFLAGS += --pedantic
-CFLAGS += -O9
+CFLAGS += -O4
 #CFLAGS += -DBLISS_DEBUG
 CFLAGS += -fPIC
 
