@@ -3,6 +3,7 @@ bliss (0.72-5) unstable; urgency=low
   * Convert packaging to 3.0 (quilt).
   * Bug fix: "FTBFS with clang instead of gcc", thanks to Sylvestre Ledru
     (Closes: #710399).
+  * Add Vcs-Git and Vcs-Browser headers.
 
  -- David Bremner <bremner@debian.org>  Wed, 05 Jun 2013 20:08:45 -0300
 
