@@ -12,7 +12,7 @@ XP=xsltproc -''-nonet
 override_dh_auto_build: 
 	$(MAKE) gmp_shared lib
 	# work around bug 622147
-	doxygen && rm -f html/jquery.js
+	doxygen
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
 
 .PHONY: override_dh_strip
