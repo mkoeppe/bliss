@@ -67,6 +67,18 @@ libbliss.so: $(GMPSHOBJS)
 	ln -sf $(SOFULL) $(SONAME)
 	ln -sf $(SOFULL) libbliss.so
 
+install: gmp_shared lib
+	mkdir -p $(DESTDIR)/usr/lib
+	cp libbliss.a $(DESTDIR)/usr/lib
+	cp $(SOFULL) $(DESTDIR)/usr/lib
+	cd $(DESTDIR)/usr/lib && \
+		ln -sf $(SOFULL) $(SONAME) && \
+		ln -sf $(SOFULL) libbliss.so
+	mkdir -p $(DESTDIR)/usr/include/bliss
+	cp *.h $(DESTDIR)/usr/include/bliss
+	cp *.hh $(DESTDIR)/usr/include/bliss
+	mkdir -p $(DESTDIR)/usr/bin
+	cp bliss $(DESTDIR)/usr/bin
 
 clean:
 	rm -f bliss $(BLISSLIB) $(OBJS) bliss.o $(GMPOBJS) bliss.og *.ogs *.so*

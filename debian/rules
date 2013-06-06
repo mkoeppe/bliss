@@ -15,9 +15,6 @@ override_dh_auto_build:
 	doxygen && rm -f html/jquery.js
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
 
-override_dh_auto_install:
-	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install_shlib
-
 .PHONY: override_dh_strip
 override_dh_strip:
 	dh_strip -plibbliss1d --dbg-package=libbliss1d-dbg
