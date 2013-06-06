@@ -6,8 +6,9 @@ bliss (0.72-5) unstable; urgency=low
   * Add Vcs-Git and Vcs-Browser headers.
   * Bump Standards-Version to 3.9.4 (no changes).
   * Bump debhelper compat level to 9
+  * Enable hardening flags
 
- -- David Bremner <bremner@debian.org>  Wed, 05 Jun 2013 20:29:30 -0300
+ -- David Bremner <bremner@debian.org>  Wed, 05 Jun 2013 23:24:49 -0300
 
 bliss (0.72-4) unstable; urgency=low
 

@@ -1,4 +1,4 @@
-CFLAGS = -I.
+CFLAGS += -I.
 CFLAGS += -g
 #CFLAGS += -pg
 CFLAGS += -Wall
@@ -29,7 +29,7 @@ SOFULL=$(SONAME).$(SOMINOR)
 GMPSHOBJS=$(addsuffix s, $(GMPOBJS))
 
 %.ogs: %.cc
-	$(CC) -fPIC -c $(CFLAGS) -o $@ $<
+	$(CC) $(CPPFLAGS) -fPIC -c $(CFLAGS) -o $@ $<
 
 gmp_shared gmp:	LIB += -lgmp
 gmp_shared gmp:	CFLAGS += -DBLISS_USE_GMP
@@ -41,7 +41,7 @@ gmp_shared: bliss_gmp_shared libbliss.so
 all:: lib bliss
 
 %.o %.og:	%.cc
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 lib: $(OBJS)
 	rm -f $(BLISSLIB)
@@ -54,16 +54,16 @@ lib_gmp: $(GMPOBJS)
 	$(RANLIB) $(BLISSLIB)
 
 bliss: bliss.o lib $(OBJS)
-	$(CC) $(CFLAGS) -o bliss bliss.o $(OBJS) $(LIB)
+	$(CC) $(CFLAGS) -o bliss bliss.o $(OBJS) $(LDFLAGS) $(LIB)
 
 bliss_gmp: bliss.og lib_gmp $(GMPOBJS)
-	$(CC) $(CFLAGS) -o bliss bliss.og $(GMPOBJS) $(LIB)
+	$(CC) $(CFLAGS) -o bliss bliss.og $(GMPOBJS) $(LDFLAGS) $(LIB)
 
 bliss_gmp_shared: libbliss.so bliss.og
-	$(CC) $(CFLAGS) -o bliss bliss.og -L. -lbliss -lgmp
+	$(CC) $(CFLAGS) -o bliss bliss.og -L. -lbliss -lgmp $(LDFLAGS)
 
 libbliss.so: $(GMPSHOBJS)
-	$(CC) -shared -Wl,-soname,$(SONAME) $(LIB) -o $(SOFULL) $^
+	$(CC) -shared -Wl,-soname,$(SONAME) $(LDFLAGS) $(LIB) -o $(SOFULL) $^
 	ln -sf $(SOFULL) $(SONAME)
 	ln -sf $(SOFULL) libbliss.so
 
