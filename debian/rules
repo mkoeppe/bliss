@@ -10,17 +10,13 @@ XP=xsltproc -''-nonet
 	dh $@
 
 override_dh_auto_build: 
-	$(MAKE) -f debian/Makefile.shlib  libbliss.so bliss_shlib
+	$(MAKE) libbliss.so bliss_shlib
 	# work around bug 622147
 	doxygen && rm -f html/jquery.js
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
 
-override_dh_auto_clean:
-	$(MAKE) -f debian/Makefile.shlib clean_shlib
-	rm -rf html
-
 override_dh_auto_install:
-	$(MAKE) -f debian/Makefile.shlib DESTDIR=$(CURDIR)/debian/tmp install_shlib
+	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install_shlib
 
 .PHONY: override_dh_strip
 override_dh_strip:
