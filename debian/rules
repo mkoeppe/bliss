@@ -10,7 +10,7 @@ XP=xsltproc -''-nonet
 	dh $@
 
 override_dh_auto_build: 
-	$(MAKE) libbliss.so bliss_shlib
+	$(MAKE) gmp_shared lib
 	# work around bug 622147
 	doxygen && rm -f html/jquery.js
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
