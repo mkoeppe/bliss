@@ -2,13 +2,13 @@ bliss (0.72-5) unstable; urgency=low
 
   * Convert packaging to 3.0 (quilt).
   * Bug fix: "FTBFS with clang instead of gcc", thanks to Sylvestre Ledru
-    (Closes: #710399).
+    (Closes: #710399). Replace -O9 with -O4.
   * Add Vcs-Git and Vcs-Browser headers.
   * Bump Standards-Version to 3.9.4 (no changes).
   * Bump debhelper compat level to 9
   * Enable hardening flags
 
- -- David Bremner <bremner@debian.org>  Wed, 05 Jun 2013 23:24:49 -0300
+ -- David Bremner <bremner@debian.org>  Fri, 07 Jun 2013 08:22:00 -0300
 
 bliss (0.72-4) unstable; urgency=low
 
