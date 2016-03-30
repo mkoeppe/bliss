@@ -1,21 +1,19 @@
 #!/usr/bin/make -f
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
 DB2MAN=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl
 XP=xsltproc -''-nonet
 
-%: 
+default:
+	@uscan --no-conf --dehs --report || true
+
+%:
 	dh $@
 
-override_dh_auto_build: 
+override_dh_auto_build:
 	$(MAKE) gmp_shared lib
 	# work around bug 622147
 	doxygen
 	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
 
-.PHONY: override_dh_strip
-override_dh_strip:
-	dh_strip -plibbliss1d --dbg-package=libbliss1d-dbg
-	dh_strip -pbliss
+get-orig-source:
+	uscan --no-conf --download-current-version --compression xz --verbose

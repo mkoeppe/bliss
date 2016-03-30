@@ -1,13 +1,17 @@
 Source: bliss
 Section: math
 Priority: optional
-Maintainer: David Bremner <bremner@debian.org>
-Build-Depends: debhelper (>= 9), libgmp-dev, xsltproc, docbook-xsl, 
-	       docbook-xml, doxygen
-Standards-Version: 3.9.4
-Homepage: http://www.tcs.hut.fi/Software/bliss/index.shtml
-Vcs-Git: git://anonscm.debian.org/git/debian-science/packages/bliss
-Vcs-Browser:  http://anonscm.debian.org/gitweb/?p=debian-science/packages/bliss.git
+Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Jerome Benoit <calculus@rezozer.net>
+Build-Depends:
+ debhelper (>= 9),
+ libgmp-dev
+Build-Depends-Indep:
+ xsltproc, docbook-xsl, docbook-xml, doxygen
+Standards-Version: 3.9.7
+Homepage: http://www.tcs.hut.fi/Software/bliss/
+Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/bliss.git
+Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/bliss.git
 
 Package: bliss
 Architecture: any
@@ -46,17 +50,3 @@ Description: development files to compute graph automorphisms and labelings
  are specially designed for fast handling of large and sparse graphs.
  .
  This package provides the C/C++ development API.
-
-Package: libbliss1d-dbg
-Architecture: any
-Section: debug
-Priority: extra
-Depends: libbliss1d (= ${binary:Version}), ${misc:Depends}
-Description: debugging symbols for libbliss1d
- Bliss is a backtracking algorithm for computing automorphism groups
- and canonical forms of graphs, based on individualization and
- refinement. Its data structures, subroutines, and pruning heuristics
- are specially designed for fast handling of large and sparse graphs.
- .
- This package contains the debugging symbols for libliss1d
-
