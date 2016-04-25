@@ -5,31 +5,25 @@ Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.
 Uploaders: Jerome Benoit <calculus@rezozer.net>
 Build-Depends:
  debhelper (>= 9),
+ autotools-dev, dh-autoreconf, libtool, help2man,
  libgmp-dev
 Build-Depends-Indep:
- xsltproc, docbook-xsl, docbook-xml, doxygen
-Standards-Version: 3.9.7
+ doxygen, doxygen-latex, graphviz,
+ rdfind, symlinks
+Standards-Version: 3.9.8
 Homepage: http://www.tcs.hut.fi/Software/bliss/
 Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/bliss.git
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/bliss.git
 
-Package: bliss
+Package: libbliss2
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Suggests: libbliss-dev
-Description: tool to compute graph automorphisms and labelings
- Bliss is a backtracking algorithm for computing automorphism groups
- and canonical forms of graphs, based on individualization and
- refinement. Its data structures, subroutines, and pruning heuristics
- are specially designed for fast handling of large and sparse graphs.
- .
- This package provides the command line tool bliss.
-
-Package: libbliss1d
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Suggests: libbliss-dev
+Multi-Arch: same
 Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: bliss (= ${binary:Version})
+Pre-Depends: ${misc:Pre-Depends}
+Conflicts: libbliss
+Provides: libbliss
 Description: library to compute graph automorphisms and labelings
  Bliss is a backtracking algorithm for computing automorphism groups
  and canonical forms of graphs, based on individualization and
@@ -40,13 +34,59 @@ Description: library to compute graph automorphisms and labelings
 
 Package: libbliss-dev
 Architecture: any
-Depends: ${misc:Depends}, libbliss1d (=${binary:Version})
-Suggests: bliss
+Multi-Arch: same
 Section: libdevel
-Description: development files to compute graph automorphisms and labelings
+Depends:
+ libbliss2 (=${binary:Version}), libbliss-dev-common (= ${source:Version}),
+ libgmp-dev, ${misc:Depends}
+Description: development files to compute graph automorphisms and labelings -- libdev
  Bliss is a backtracking algorithm for computing automorphism groups
  and canonical forms of graphs, based on individualization and
  refinement. Its data structures, subroutines, and pruning heuristics
  are specially designed for fast handling of large and sparse graphs.
  .
- This package provides the C/C++ development API.
+ This package provides the static library and symbolic links needed
+ for development.
+
+
+Package: libbliss-dev-common
+Architecture: all
+Multi-Arch: foreign
+Replaces: libbliss-dev (<= 0.72-5)
+Breaks: libbliss-dev (<= 0.72-5)
+Section: libdevel
+Depends: ${misc:Depends}
+Description: development files to compute graph automorphisms and labelings -- headers
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package provides the C/C++ headers needed for development.
+
+Package: bliss
+Architecture: any
+Multi-Arch: foreign
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Description: tool to compute graph automorphisms and labelings -- bin
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package provides the command line tool bliss.
+
+Package: bliss-doc
+Architecture: all
+Multi-Arch: foreign
+Section: doc
+Depends: libjs-jquery, ${misc:Depends}
+Suggests: bliss (= ${binary:Version}), pdf-viewer, www-browser
+Description: suite to compute graph automorphisms and labelings -- doc
+ Bliss is a backtracking algorithm for computing automorphism groups
+ and canonical forms of graphs, based on individualization and
+ refinement. Its data structures, subroutines, and pruning heuristics
+ are specially designed for fast handling of large and sparse graphs.
+ .
+ This package provides the API documentation.

@@ -1,0 +1,2 @@
+Tests: build-examples
+Depends: bliss-doc, libbliss-dev, build-essential

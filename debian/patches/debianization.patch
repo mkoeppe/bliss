@@ -1,0 +1,28 @@
+Description: debianization
+ Meant to maintain a minimal debian/rules, to fix warnings,
+ to address Debian specific stuff in general.
+Origin: debian
+Author: Jerome Benoit <calculus@rezozer.net>
+Last-Update: 2016-03-31
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -9,7 +9,7 @@
+ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CONFIG_SRCDIR([bliss_C.h])
+ AC_CONFIG_HEADERS([bliss_config.h])
+-AM_SILENT_RULES([yes])
++AM_SILENT_RULES([no])
+ AM_INIT_AUTOMAKE([foreign])
+ AM_MAINTAINER_MODE([])
+ 
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -64,6 +64,7 @@
+ 	bliss.cc
+ 
+ bliss_CXXFLAGS = \
++	-DBLISS_COMPILED_DATE="\"Debian $(DEB_PKG_VERSION)\"" \
+ 	$(libbliss_la_CXXFLAGS)
+ 
+ bliss_LDADD = \

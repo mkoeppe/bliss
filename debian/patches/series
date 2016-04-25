@@ -1,0 +1,4 @@
+upstream-source-libbliss-system_wide_includes.patch
+upstream-source-CC2help2man.patch
+upstream-autotoolization.patch
+debianization.patch

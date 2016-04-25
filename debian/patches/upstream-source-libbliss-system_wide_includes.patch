@@ -1,0 +1,100 @@
+Description: system wide includes
+ Make #include's that include package headers system wide rather
+ than local to avoid name collisions; meant to be submitted to the
+ upstream maintainer.
+Origin: debian
+Author: Jerome Benoit <calculus@rezozer.net>
+Last-Update: 2016-04-23
+
+--- a/bignum.hh
++++ b/bignum.hh
+@@ -26,7 +26,7 @@
+ 
+ #include <cstdlib>
+ #include <cstdio>
+-#include "defs.hh"
++#include <bliss/defs.hh>
+ 
+ namespace bliss {
+ 
+--- a/graph.hh
++++ b/graph.hh
+@@ -31,13 +31,13 @@
+ 
+ #include <cstdio>
+ #include <vector>
+-#include "kstack.hh"
+-#include "kqueue.hh"
+-#include "heap.hh"
+-#include "orbit.hh"
+-#include "partition.hh"
+-#include "bignum.hh"
+-#include "uintseqhash.hh"
++#include <bliss/kstack.hh>
++#include <bliss/kqueue.hh>
++#include <bliss/heap.hh>
++#include <bliss/orbit.hh>
++#include <bliss/partition.hh>
++#include <bliss/bignum.hh>
++#include <bliss/uintseqhash.hh>
+ 
+ namespace bliss {
+ 
+--- a/kqueue.hh
++++ b/kqueue.hh
+@@ -20,7 +20,7 @@
+   along with bliss.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-#include "defs.hh"
++#include <bliss/defs.hh>
+ 
+ namespace bliss {
+ 
+--- a/kstack.hh
++++ b/kstack.hh
+@@ -21,7 +21,7 @@
+ */
+ 
+ #include <cstdlib>
+-#include "defs.hh"
++#include <bliss/defs.hh>
+ 
+ namespace bliss {
+ 
+--- a/partition.hh
++++ b/partition.hh
+@@ -27,11 +27,11 @@
+ #include <cstdlib>
+ #include <cstdio>
+ #include <climits>
+-#include "kstack.hh"
+-#include "kqueue.hh"
+-#include "heap.hh"
+-#include "orbit.hh"
+-#include "graph.hh"
++#include <bliss/kstack.hh>
++#include <bliss/kqueue.hh>
++#include <bliss/heap.hh>
++#include <bliss/orbit.hh>
++#include <bliss/graph.hh>
+ 
+ 
+ namespace bliss {
+--- a/bliss.cc
++++ b/bliss.cc
+@@ -2,10 +2,10 @@
+ #include <cstdio>
+ #include <cstring>
+ #include <cassert>
+-#include "defs.hh"
+-#include "graph.hh"
+-#include "timer.hh"
+-#include "utils.hh"
++#include <bliss/defs.hh>
++#include <bliss/graph.hh>
++#include <bliss/timer.hh>
++#include <bliss/utils.hh>
+ 
+ /*
+   Copyright (c) 2003-2015 Tommi Junttila

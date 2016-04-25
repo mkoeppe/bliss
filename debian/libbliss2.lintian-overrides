@@ -1,0 +1,15 @@
+# The upstream source ball contains no changelog file
+no-upstream-changelog
+
+# Unknown mathematical heuristics, consistency checks, validation checks,
+# are eventually managed with exit(1): this looks as a clumsy DEBUG policy
+# rather than a design issue, nevertheless it is unlikely to be fixed
+# by the upstream maintainer as the involved events must be considered as
+# mathematically impossible.
+# Out of memory events are also eventually managed with exit(1): this looks
+# as a clumsy emergency exit policy rather than a design issue that may be
+# revisited only to please lintian(1).
+shlib-calls-exit
+
+# The upstream source contains C++ code with a defined API but without ABI.
+no-symbols-control-file

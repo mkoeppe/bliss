@@ -1,0 +1,11 @@
+#!/bin/sh
+# autopkgtest check: build [and launch] program examples
+set -ue
+cd $ADTTMP
+
+cp -prd /usr/share/doc/bliss-doc/examples .
+cd examples
+
+make check
+
+exit 0

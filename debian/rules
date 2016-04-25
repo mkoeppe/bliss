@@ -1,19 +1,35 @@
 #!/usr/bin/make -f
 
-DB2MAN=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/manpages/docbook.xsl
-XP=xsltproc -''-nonet
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+export DEB_PKG_VERSION = $(shell dpkg-parsechangelog -S Version)
+export UPS_PKG_VERSION = $(firstword $(subst -, ,$(DEB_PKG_VERSION)))
 
 default:
 	@uscan --no-conf --dehs --report || true
 
 %:
-	dh $@
+	dh $@ --with autoreconf --builddirectory=_build --parallel
 
-override_dh_auto_build:
-	$(MAKE) gmp_shared lib
-	# work around bug 622147
-	doxygen
-	$(XP) -o bliss.1 $(DB2MAN) $(CURDIR)/debian/blissman.xml
+override_dh_auto_build-indep:
+	$(MAKE) -f debian/adhoc/Makefile doc
+
+override_dh_auto_test-indep:
+	true
+
+override_dh_prep-arch:
+	$(MAKE) -f debian/adhoc/Makefile manpages
+
+override_dh_auto_install-indep:
+	$(MAKE) -C _build install-data-am DESTDIR=$(CURDIR)/debian/tmp
+
+override_dh_installdocs:
+	dh_installdocs -pbliss --link-doc=libbliss2
+	dh_installdocs -plibbliss-dev --link-doc=libbliss-dev-common
+	dh_installdocs --remaining-packages
+
+override_dh_compress-indep:
+	dh_compress -X.pdf -Xexamples
 
 get-orig-source:
 	uscan --no-conf --download-current-version --compression xz --verbose

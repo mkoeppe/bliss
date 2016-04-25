@@ -1,0 +1,17 @@
+Document: bliss
+Title: bliss: Source Code Documentation
+Author: Tommi Junttila and Petteri Kaski
+Abstract:
+ bliss is an open source tool for computing automorphism groups and canonical
+ forms of graphs. It has both a command line user interface as well as C++ and
+ C programming language APIs.
+ This document describes the API of the bliss C++/C library.
+ The source code is distributed under the GNU LGPL License.
+Section: Science/Mathematics
+
+Format: HTML
+Index: /usr/share/doc/bliss-doc/html/index.html
+Files: /usr/share/doc/bliss-doc/html/*.html
+
+Format: PDF
+Files: /usr/share/doc/bliss-doc/bliss_refman.pdf

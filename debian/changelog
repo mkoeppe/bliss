@@ -1,4 +1,4 @@
-bliss (0.73-0) UNRELEASED; urgency=medium
+bliss (0.73-1) unstable; urgency=medium
 
   * New upstream release.
   * New maintainer (Closes: #818966).
@@ -8,16 +8,21 @@ bliss (0.73-0) UNRELEASED; urgency=medium
       - refresh;
     - debian/control:
       - discard the debug symbols package libbliss1d-dbg;
-      - Standards Version, bump to 3.9.7;
+      - Standards Version, bump to 3.9.8;
       - Vcs-* headers, secure;
     - debian/watch, refresh;
     - debian/rules:
-      - default target, intorduce;
+      - default target, introduce;
       - get-orig-source target, introduce;
       - discard the debug symbols material (see above);
-      - clean up.
+      - build-arch/build-indep scheme, introduce;
+      - clean up;
+    - debian/tests; initiate;
+    - reproducible build, attempt.
+  * Upstream fixes and enhancements has been submitted and defining
+    a clear ABI has been suggested to the upstream maintainer.
 
- -- Jerome Benoit <calculus@rezozer.net>  Wed, 30 Mar 2016 18:45:00 +0000
+ -- Jerome Benoit <calculus@rezozer.net>  Mon, 25 Apr 2016 02:23:27 +0000
 
 bliss (0.72-5) unstable; urgency=low
 

@@ -1,4 +1,3 @@
-usr/lib/libbliss.a 
-usr/lib/libbliss.so
-usr/include/bliss
-
+usr/lib/*/libbliss.so
+usr/lib/*/libbliss.a
+#usr/lib/*/pkgconfig/*
