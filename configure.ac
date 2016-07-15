@@ -24,7 +24,7 @@ AC_PROG_CC
 
 dnl Checks for libraries:
 dnl GNU MultiPrecision arithmetic library (GMP)
-AM_PATH_GMP([6.1.0],[],[AC_MSG_ERROR(could not find required version of GMP)])
+AM_PATH_GMP([5.1.3],[],[AC_MSG_ERROR(could not find required version of GMP)])
 
 AC_CONFIG_FILES([
 	include/Makefile
