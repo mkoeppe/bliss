@@ -2,10 +2,10 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
-#include "defs.hh"
-#include "graph.hh"
-#include "timer.hh"
-#include "utils.hh"
+#include <bliss/defs.hh>
+#include <bliss/graph.hh>
+#include <bliss/timer.hh>
+#include <bliss/utils.hh>
 
 /*
   Copyright (c) 2003-2015 Tommi Junttila
@@ -48,6 +48,25 @@ static FILE* verbstr = stdout;
 
 
 
+#if !defined(BLISS_COMPILED_DATE)
+#define BLISS_COMPILED_DATE "compiled " __DATE__
+#endif
+
+static void
+version(FILE* const fp)
+{
+  fprintf(fp,
+"bliss version %s (" BLISS_COMPILED_DATE ")\n"
+"Copyright (C) 2003-2015 Tommi Junttila.\n"
+"\n"
+"License LGPLv3+: GNU LGPL version 3 or later, <http://gnu.org/licenses/lgpl.html>.\n"
+"This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n"
+"and you are welcome to redistribute it under certain conditions;\n"
+"see COPYING and COPYING.LESSER for details.\n"
+      , bliss::version
+	  );
+}
+
 static void
 usage(FILE* const fp, const char* argv0)
 {
@@ -59,12 +78,10 @@ usage(FILE* const fp, const char* argv0)
   else program_name = argv0;  
   if(!program_name or *program_name == 0) program_name = "bliss";
 
-  fprintf(fp, "bliss version %s (compiled "__DATE__")\n", bliss::version);
-  fprintf(fp, "Copyright 2003-2015 Tommi Junttila\n");
   fprintf(fp,
-"\n"
-"Usage: %s [options] [<graph file>]\n"
-"\n"
+"Usage: %s [options] [<graphfile>]\n"
+"  Run bliss on <graphfile>.\n"
+"Options:\n"
 "  -directed   the input graph is directed\n"
 "  -can        compute canonical form\n"
 "  -ocan=f     compute canonical form and output it in file f\n"
@@ -83,6 +100,7 @@ usage(FILE* const fp, const char* argv0)
 "  -cr=X       use component recursion? [X=y/n, default: y]\n"
 "  -version    print the version number and exit\n"
 "  -help       print this help and exit\n"
+"\n"
           ,program_name
 	  );
 }
@@ -120,7 +138,7 @@ parse_options(const int argc, const char** argv)
 	}
       else if(strcmp(argv[i], "-version") == 0)
 	{
-	  fprintf(stdout, "bliss version %s\n", bliss::version);
+	  version(stdout);
 	  exit(0);
 	}
       else if(strcmp(argv[i], "-help") == 0)

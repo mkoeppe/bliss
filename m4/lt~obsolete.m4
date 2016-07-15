@@ -1,0 +1,1 @@
+/sw/share/aclocal/lt~obsolete.m4
