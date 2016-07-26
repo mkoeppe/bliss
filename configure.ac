@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.69])
 LT_PREREQ([2.4.2])
 dnl
-AC_INIT([bliss],[0.73+debian-1],
+AC_INIT([bliss],[0.73+debian-1+sage-2016-07-26],
 	[tommi.junttila@aalto.fi],[bliss],
 	[http://www.tcs.hut.fi/Software/bliss/])
 AC_CONFIG_MACRO_DIR([m4])
@@ -22,9 +22,18 @@ dnl Checks for programs:
 AC_PROG_CXX
 AC_PROG_CC
 
-dnl Checks for libraries:
-dnl GNU MultiPrecision arithmetic library (GMP)
-AM_PATH_GMP([5.1.3],[],[AC_MSG_ERROR(could not find required version of GMP)])
+AC_ARG_ENABLE([gmp],
+  [AS_HELP_STRING([--enable-gmp@<:@=ARG@:>@],
+      [enable use of GMP @<:@default=yes@:>@])],
+  [:],
+  [enable_gmp=yes])
+AS_IF([test "x$enable_gmp" = xyes],
+  [
+   dnl Checks for libraries:
+   dnl GNU MultiPrecision arithmetic library (GMP)
+   AM_PATH_GMP([5.1.3],[],[AC_MSG_ERROR(could not find required version of GMP)])
+  ])
+AM_CONDITIONAL(GMP, test "x$enable_gmp" = xyes)
 
 AC_CONFIG_FILES([
 	include/Makefile
