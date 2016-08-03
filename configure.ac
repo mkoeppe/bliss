@@ -22,9 +22,18 @@ dnl Checks for programs:
 AC_PROG_CXX
 AC_PROG_CC
 
-dnl Checks for libraries:
-dnl GNU MultiPrecision arithmetic library (GMP)
-AM_PATH_GMP([5.1.3],[],[AC_MSG_ERROR(could not find required version of GMP)])
+AC_ARG_ENABLE([gmp],
+  [AS_HELP_STRING([--enable-gmp@<:@=ARG@:>@],
+      [enable use of GMP @<:@default=yes@:>@])],
+  [:],
+  [enable_gmp=yes])
+AS_IF([test "x$enable_gmp" = xyes],
+  [
+   dnl Checks for libraries:
+   dnl GNU MultiPrecision arithmetic library (GMP)
+   AM_PATH_GMP([5.1.3],[],[AC_MSG_ERROR(could not find required version of GMP)])
+  ])
+AM_CONDITIONAL(GMP, test "x$enable_gmp" = xyes)
 
 AC_CONFIG_FILES([
 	include/Makefile

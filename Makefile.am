@@ -47,9 +47,13 @@ libbliss_la_SOURCES = \
 	bliss_C.cc
 
 libbliss_la_CXXFLAGS = \
+	-I $(top_builddir)/include
+
+if GMP
+libbliss_la_CXXFLAGS += \
 	-D BLISS_USE_GMP \
-	-I $(top_builddir)/include \
 	$(GMP_CFLAGS)
+endif
 
 libbliss_la_CFLAGS = \
 	$(libbliss_la_CXXFLAGS)
