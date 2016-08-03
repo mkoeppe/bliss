@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.69])
 LT_PREREQ([2.4.2])
 dnl
-AC_INIT([bliss],[0.73],
+AC_INIT([bliss],[0.73+debian-1+sage-2016-08-02],
 	[tommi.junttila@aalto.fi],[bliss],
 	[http://www.tcs.hut.fi/Software/bliss/])
 AC_CONFIG_MACRO_DIR([m4])
