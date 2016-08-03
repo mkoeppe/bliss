@@ -69,6 +69,10 @@ public:
    * Print the number in the file stream \a fp.
    */
   size_t print(FILE* const fp) const {return mpz_out_str(fp, 10, v); }
+
+private:
+  BigNum &operator=(BigNum const &);
+  BigNum(BigNum const &);
 };
 
 #else
